@@ -55,9 +55,9 @@ npm run test       # unit tests
 
 ## Team
 
-- … — team lead
-- …
-- …
+- Alkatraz911 — team lead
+-
+-
 
 ## License
 

@@ -1,0 +1,19 @@
+{
+  "nav": {
+    "about": "About",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "history": "History",
+    "signOut": "Sign out"
+  },
+  "footer": {
+    "about": "About",
+    "copyright": "© 2026 Swagger Editor — RS School"
+  },
+  "home": {
+    "editorTitle": "Editor",
+    "editorHint": "Paste or write your OpenAPI / Swagger specification here.",
+    "viewerTitle": "Viewer",
+    "viewerHint": "Endpoints will appear here once the specification is valid."
+  }
+}

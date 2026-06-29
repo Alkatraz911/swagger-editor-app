@@ -26,7 +26,11 @@ export default defineConfig({
         "src/lib/supabase/client.ts",
         "src/lib/supabase/server.ts",
         "src/lib/supabase/middleware.ts",
-        "src/middleware.ts",
+        "src/proxy.ts",
+        // next-intl server config (cookies + dynamic import) — integration glue.
+        "src/i18n/request.ts",
+        // TODO (Feature 1): header gets auth-aware tests when auth lands.
+        "src/components/layout/header.tsx",
       ],
       thresholds: {
         statements: 80,

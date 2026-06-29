@@ -1,0 +1,19 @@
+{
+  "nav": {
+    "about": "О проекте",
+    "signIn": "Войти",
+    "signUp": "Регистрация",
+    "history": "История",
+    "signOut": "Выйти"
+  },
+  "footer": {
+    "about": "О проекте",
+    "copyright": "© 2026 Swagger Editor — RS School"
+  },
+  "home": {
+    "editorTitle": "Редактор",
+    "editorHint": "Вставьте или напишите здесь спецификацию OpenAPI / Swagger.",
+    "viewerTitle": "Просмотрщик",
+    "viewerHint": "Эндпоинты появятся здесь, как только спецификация станет валидной."
+  }
+}
