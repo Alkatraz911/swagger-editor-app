@@ -9,7 +9,7 @@ and — when authenticated — save schemas and review a history of executed req
 
 ## Live Demo
 
-<!-- TODO: add the Vercel deployment link here -->
+🔗 **[swagger-editor-app-rouge.vercel.app](https://swagger-editor-app-rouge.vercel.app/)**
 
 ## Tech Stack
 
@@ -55,9 +55,9 @@ npm run test       # unit tests
 
 ## Team
 
-- Alkatraz911 — team lead
--
--
+- **[Alkatraz911](https://github.com/alkatraz911)** — team lead
+- **[maksimdolgonosov](https://github.com/maksimdolgonosov)**
+- **[dinasing](https://github.com/dinasing)**
 
 ## License
 
