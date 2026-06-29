@@ -32,7 +32,16 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Environment variables
 
-See `.env.example`. You will need a Supabase project URL and keys.
+See `.env.example`. You will need a Supabase project URL and anon key.
+
+### Supabase setup
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. In **Settings → API**, copy the `Project URL` and `anon public` key into
+   `.env.local` (see `.env.example`).
+3. Open the **SQL Editor** and run `supabase/migrations/0001_init.sql` to create
+   the `schemas` and `requests` tables with Row Level Security.
+4. Email/password auth is enabled by default — no extra config needed.
 
 ## Scripts
 
