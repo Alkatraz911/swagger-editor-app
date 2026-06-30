@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { unstable_rethrow } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
@@ -29,10 +30,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   async function onSubmit({ email, password }: Credentials) {
     const action = isSignIn ? signIn : signUp;
     try {
-      // On success the server action redirects to "/"; we only handle errors.
       const result = await action(email, password);
       if (result?.error) toast.error(result.error);
-    } catch {
+    } catch (error) {
+      // A successful sign-in/up redirects via the server action, which surfaces
+      // here as Next's redirect control-flow error — re-throw it so the
+      // navigation happens; only show a toast for genuine failures.
+      unstable_rethrow(error);
       toast.error(t("failed"));
     }
   }
