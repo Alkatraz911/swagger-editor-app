@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { useSpecStore } from "@/store/spec-store";
 import { renderWithIntl } from "@/test/render-with-intl";
 
@@ -11,8 +11,10 @@ function mockColorScheme(isDark: boolean) {
   });
 }
 
-const { monacoPropsSpy } = vi.hoisted(() => ({
+const { monacoPropsSpy, parseSpecSpy, validateSpecSpy } = vi.hoisted(() => ({
   monacoPropsSpy: vi.fn(),
+  parseSpecSpy: vi.fn(),
+  validateSpecSpy: vi.fn(),
 }));
 
 vi.mock("next/dynamic", () => ({
@@ -39,13 +41,24 @@ vi.mock("next/dynamic", () => ({
   },
 }));
 
+vi.mock("@/lib/openapi/parse", () => ({
+  parseSpec: (...args: Parameters<typeof parseSpecSpy>) =>
+    parseSpecSpy(...args),
+  validateSpec: (...args: Parameters<typeof validateSpecSpy>) =>
+    validateSpecSpy(...args),
+}));
+
 import { SpecEditor } from "./spec-editor";
 
 describe("SpecEditor", () => {
   beforeEach(() => {
+    vi.useRealTimers();
     useSpecStore.getState().reset();
     monacoPropsSpy.mockClear();
     mockColorScheme(false);
+    parseSpecSpy.mockReset();
+    validateSpecSpy.mockReset();
+    validateSpecSpy.mockResolvedValue([]);
   });
 
   it("renders Monaco with initial value from the store", () => {
@@ -148,5 +161,104 @@ describe("SpecEditor", () => {
     const loader = screen.getByText("Редактор").closest("[aria-hidden]");
     expect(loader).toHaveAttribute("aria-hidden", "true");
     expect(monacoPropsSpy.mock.calls.length).toBe(mountCallsBefore + 1);
+  });
+
+  it("publishes parsedSpec after debounce for valid input", async () => {
+    vi.useFakeTimers();
+    parseSpecSpy.mockReturnValue({
+      data: {
+        openapi: "3.0.0",
+        info: { title: "Test API", version: "1.0.0" },
+        paths: {},
+      },
+      error: null,
+    });
+    validateSpecSpy.mockResolvedValue([]);
+
+    renderWithIntl(<SpecEditor />);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: {
+        value:
+          '{"openapi":"3.0.0","info":{"title":"Test API","version":"1.0.0"},"paths":{}}',
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(useSpecStore.getState().parsedSpec).toMatchObject({
+      openapi: "3.0.0",
+    });
+    expect(useSpecStore.getState().errors).toEqual([]);
+
+    vi.useRealTimers();
+  });
+
+  it("stores parse errors and clears parsedSpec", async () => {
+    vi.useFakeTimers();
+    useSpecStore.setState({
+      parsedSpec: { openapi: "3.0.0" },
+      errors: [],
+    });
+    parseSpecSpy.mockReturnValue({
+      data: null,
+      error: "Unexpected end of JSON input",
+    });
+
+    renderWithIntl(<SpecEditor />);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: { value: '{"openapi":"3.0.0"' },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(useSpecStore.getState().parsedSpec).toBeNull();
+    expect(useSpecStore.getState().errors).toEqual([
+      "Unexpected end of JSON input",
+    ]);
+    expect(validateSpecSpy).not.toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
+  it("stores validation errors and clears parsedSpec", async () => {
+    vi.useFakeTimers();
+    parseSpecSpy.mockReturnValue({
+      data: {
+        openapi: "3.0.0",
+        info: { title: "Test API", version: "1.0.0" },
+        paths: {},
+      },
+      error: null,
+    });
+    validateSpecSpy.mockResolvedValue([
+      "Swagger schema validation failed: missing paths",
+    ]);
+
+    renderWithIntl(<SpecEditor />);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: {
+        value:
+          '{"openapi":"3.0.0","info":{"title":"Test API","version":"1.0.0"},"paths":{}}',
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(useSpecStore.getState().parsedSpec).toBeNull();
+    expect(useSpecStore.getState().errors).toEqual([
+      "Swagger schema validation failed: missing paths",
+    ]);
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+
+    vi.useRealTimers();
   });
 });

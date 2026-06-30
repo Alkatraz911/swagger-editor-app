@@ -13,6 +13,7 @@
   "home": {
     "editorTitle": "Editor",
     "editorHint": "Paste or write your OpenAPI / Swagger specification here.",
+    "editorErrorsTitle": "Specification issues",
     "viewerTitle": "Viewer",
     "viewerHint": "Endpoints will appear here once the specification is valid."
   },
