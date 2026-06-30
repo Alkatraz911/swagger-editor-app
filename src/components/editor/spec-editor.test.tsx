@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
-import { useEffect } from "react";
 import { useSpecStore } from "@/store/spec-store";
 import { renderWithIntl } from "@/test/render-with-intl";
 
@@ -17,10 +16,6 @@ vi.mock("next/dynamic", () => ({
       onMount?: () => void;
     }) {
       monacoPropsSpy(props);
-
-      useEffect(() => {
-        props.onMount?.();
-      }, [props.onMount]);
 
       return (
         <textarea
@@ -94,11 +89,44 @@ describe("SpecEditor", () => {
   it("marks the editor as ready when Monaco mounts", async () => {
     renderWithIntl(<SpecEditor />);
 
-    expect(monacoPropsSpy.mock.calls[0][0].onMount).toBeTypeOf("function");
+    const onMount = monacoPropsSpy.mock.calls[0][0].onMount;
+    expect(onMount).toBeTypeOf("function");
+
+    const initialLoader = screen.getByText("Editor").closest("[aria-hidden]");
+    expect(initialLoader).toHaveAttribute("aria-hidden", "false");
+
+    onMount?.();
 
     await waitFor(() => {
       const loader = screen.getByText("Editor").closest("[aria-hidden]");
       expect(loader).toHaveAttribute("aria-hidden", "true");
     });
+  });
+
+  it("remounts editor when locale changes", async () => {
+    useSpecStore.setState({
+      rawText: "openapi: 3.0.3",
+      format: "yaml",
+    });
+
+    const { rerenderWithLocale } = renderWithIntl(<SpecEditor />, {
+      locale: "en",
+    });
+
+    const onMount = monacoPropsSpy.mock.calls[0][0].onMount;
+    onMount?.();
+
+    await waitFor(() => {
+      const loader = screen.getByText("Editor").closest("[aria-hidden]");
+      expect(loader).toHaveAttribute("aria-hidden", "true");
+    });
+
+    const mountCallsBefore = monacoPropsSpy.mock.calls.length;
+
+    rerenderWithLocale(<SpecEditor />, { locale: "ru" });
+
+    const loader = screen.getByText("Редактор").closest("[aria-hidden]");
+    expect(loader).toHaveAttribute("aria-hidden", "false");
+    expect(monacoPropsSpy.mock.calls.length).toBeGreaterThan(mountCallsBefore);
   });
 });
