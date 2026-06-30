@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { useEffect } from "react";
 import { useSpecStore } from "@/store/spec-store";
 import { renderWithIntl } from "@/test/render-with-intl";
 
@@ -13,8 +14,13 @@ vi.mock("next/dynamic", () => ({
       language?: string;
       value?: string;
       onChange?: (value?: string) => void;
+      onMount?: () => void;
     }) {
       monacoPropsSpy(props);
+
+      useEffect(() => {
+        props.onMount?.();
+      }, [props.onMount]);
 
       return (
         <textarea
@@ -50,6 +56,20 @@ describe("SpecEditor", () => {
     expect(monacoPropsSpy).toHaveBeenCalled();
   });
 
+  it("uses json language when the store format is json", () => {
+    useSpecStore.setState({
+      rawText: '{"openapi":"3.0.3"}',
+      format: "json",
+    });
+
+    renderWithIntl(<SpecEditor />);
+
+    expect(screen.getByTestId("monaco-mock")).toHaveAttribute(
+      "data-language",
+      "json",
+    );
+  });
+
   it("writes changed text back into the shared spec store", () => {
     renderWithIntl(<SpecEditor />);
 
@@ -58,5 +78,27 @@ describe("SpecEditor", () => {
     });
 
     expect(useSpecStore.getState().rawText).toBe('{"openapi":"3.0.3"}');
+  });
+
+  it("clears the store when Monaco reports an undefined value", () => {
+    useSpecStore.setState({ rawText: "openapi: 3.0.3" });
+
+    renderWithIntl(<SpecEditor />);
+
+    const { onChange } = monacoPropsSpy.mock.calls.at(-1)![0];
+    onChange?.(undefined);
+
+    expect(useSpecStore.getState().rawText).toBe("");
+  });
+
+  it("marks the editor as ready when Monaco mounts", async () => {
+    renderWithIntl(<SpecEditor />);
+
+    expect(monacoPropsSpy.mock.calls[0][0].onMount).toBeTypeOf("function");
+
+    await waitFor(() => {
+      const loader = screen.getByText("Editor").closest("[aria-hidden]");
+      expect(loader).toHaveAttribute("aria-hidden", "true");
+    });
   });
 });
