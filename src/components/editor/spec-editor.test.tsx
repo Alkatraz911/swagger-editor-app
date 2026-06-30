@@ -11,11 +11,13 @@ function mockColorScheme(isDark: boolean) {
   });
 }
 
-const { monacoPropsSpy, parseSpecSpy, validateSpecSpy } = vi.hoisted(() => ({
-  monacoPropsSpy: vi.fn(),
-  parseSpecSpy: vi.fn(),
-  validateSpecSpy: vi.fn(),
-}));
+const { monacoPropsSpy, parseSpecSpy, validateSpecSpy, setModelMarkersSpy } =
+  vi.hoisted(() => ({
+    monacoPropsSpy: vi.fn(),
+    parseSpecSpy: vi.fn(),
+    validateSpecSpy: vi.fn(),
+    setModelMarkersSpy: vi.fn(),
+  }));
 
 vi.mock("next/dynamic", () => ({
   default: () => {
@@ -24,7 +26,7 @@ vi.mock("next/dynamic", () => ({
       theme?: string;
       value?: string;
       onChange?: (value?: string) => void;
-      onMount?: () => void;
+      onMount?: (editor?: unknown, monaco?: unknown) => void;
     }) {
       monacoPropsSpy(props);
 
@@ -57,6 +59,7 @@ describe("SpecEditor", () => {
     monacoPropsSpy.mockClear();
     mockColorScheme(false);
     parseSpecSpy.mockReset();
+    setModelMarkersSpy.mockReset();
     validateSpecSpy.mockReset();
     validateSpecSpy.mockResolvedValue([]);
   });
@@ -258,6 +261,62 @@ describe("SpecEditor", () => {
       "Swagger schema validation failed: missing paths",
     ]);
     expect(screen.getByRole("alert")).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
+
+  it("writes Monaco markers for validation errors", async () => {
+    vi.useFakeTimers();
+    parseSpecSpy.mockReturnValue({
+      data: {
+        openapi: "3.0.0",
+        info: { title: "Test API", version: "1.0.0" },
+        paths: {},
+      },
+      error: null,
+    });
+    validateSpecSpy.mockResolvedValue([
+      "Validation failed at line 2, column 4",
+    ]);
+
+    renderWithIntl(<SpecEditor />);
+
+    const model = {
+      getLineCount: () => 10,
+      getLineMaxColumn: () => 120,
+    };
+    const editor = {
+      getModel: () => model,
+    };
+    const monaco = {
+      MarkerSeverity: { Error: 8 },
+      editor: { setModelMarkers: setModelMarkersSpy },
+    };
+
+    monacoPropsSpy.mock.calls[0][0].onMount?.(editor, monaco);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: {
+        value:
+          '{"openapi":"3.0.0","info":{"title":"Test API","version":"1.0.0"},"paths":{}}',
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(setModelMarkersSpy).toHaveBeenLastCalledWith(
+      model,
+      "openapi-validation",
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Validation failed at line 2, column 4",
+          startLineNumber: 2,
+          startColumn: 4,
+        }),
+      ]),
+    );
 
     vi.useRealTimers();
   });
