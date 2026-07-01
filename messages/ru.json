@@ -38,5 +38,48 @@
     "title": "Что-то пошло не так",
     "description": "Произошла непредвиденная ошибка. Попробуйте ещё раз.",
     "retry": "Попробовать снова"
+  },
+  "about": {
+    "title": "О проекте",
+    "course": {
+      "title": "RS School",
+      "description": "Rolling Scopes School — бесплатная образовательная программа, которую ведут волонтёры. Студенты изучают современную веб-разработку на практических проектах, код-ревью и в команде — так же, как в профессиональных командах разработки.",
+      "linkLabel": "Перейти на сайт RS School"
+    },
+    "team": {
+      "title": "Наша команда",
+      "githubLink": "Профиль GitHub — {name}",
+      "members": [
+        {
+          "name": "Alkatraz911",
+          "role": "Тим Лид",
+          "github": "https://github.com/alkatraz911"
+        },
+        {
+          "name": "maksimdolgonosov",
+          "role": "Просмотрщик Swagger и история",
+          "github": "https://github.com/maksimdolgonosov"
+        },
+        {
+          "name": "dinasing",
+          "role": "Редактор Swagger и страница «О проекте»",
+          "github": "https://github.com/dinasing"
+        }
+      ]
+    },
+    "project": {
+      "title": "О приложении",
+      "description": "Swagger Editor — веб-приложение, объединяющее редактор OpenAPI/Swagger, интерактивный просмотрщик эндпоинтов со встроенным REST-клиентом и историю запросов с аналитикой для каждого пользователя. Можно вставить или написать спецификацию в JSON или YAML, сразу увидеть эндпоинты, отправить тестовые запросы через серверный прокси и сохранить схему после входа в аккаунт.",
+      "technologiesTitle": "Технологии",
+      "technologies": "Next.js, TypeScript, Supabase, Zustand, Monaco Editor, next-intl, Tailwind CSS, Vitest, Vercel",
+      "linksTitle": "Ссылки",
+      "repoLabel": "Репозиторий на GitHub",
+      "demoLabel": "Демо"
+    },
+    "links": {
+      "rsSchool": "https://rs.school/",
+      "repository": "https://github.com/Alkatraz911/swagger-editor-app",
+      "demo": "https://swagger-editor-app-rouge.vercel.app/"
+    }
   }
 }

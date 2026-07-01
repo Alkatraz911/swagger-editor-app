@@ -38,5 +38,48 @@
     "title": "Something went wrong",
     "description": "An unexpected error occurred. Please try again.",
     "retry": "Try again"
+  },
+  "about": {
+    "title": "About",
+    "course": {
+      "title": "RS School",
+      "description": "Rolling Scopes School is a free, volunteer-run educational program. Students learn modern web development through hands-on projects, code reviews, and teamwork — the same skills used in professional software teams.",
+      "linkLabel": "Visit RS School"
+    },
+    "team": {
+      "title": "Our Team",
+      "githubLink": "GitHub profile of {name}",
+      "members": [
+        {
+          "name": "Alkatraz911",
+          "role": "Team Lead",
+          "github": "https://github.com/alkatraz911"
+        },
+        {
+          "name": "maksimdolgonosov",
+          "role": "Swagger Viewer & History",
+          "github": "https://github.com/maksimdolgonosov"
+        },
+        {
+          "name": "dinasing",
+          "role": "Swagger Editor & About Page",
+          "github": "https://github.com/dinasing"
+        }
+      ]
+    },
+    "project": {
+      "title": "The Project",
+      "description": "Swagger Editor is a web application that combines an OpenAPI/Swagger editor, an interactive endpoint viewer with a built-in REST client, and per-user request history and analytics. Users can paste or write a specification in JSON or YAML, preview endpoints instantly, send test requests through a server-side proxy, and save schemas when signed in.",
+      "technologiesTitle": "Technologies",
+      "technologies": "Next.js, TypeScript, Supabase, Zustand, Monaco Editor, next-intl, Tailwind CSS, Vitest, Vercel",
+      "linksTitle": "Links",
+      "repoLabel": "GitHub Repository",
+      "demoLabel": "Live Demo"
+    },
+    "links": {
+      "rsSchool": "https://rs.school/",
+      "repository": "https://github.com/Alkatraz911/swagger-editor-app",
+      "demo": "https://swagger-editor-app-rouge.vercel.app/"
+    }
   }
 }
