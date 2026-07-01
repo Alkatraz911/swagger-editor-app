@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useScrolled } from "@/hooks/use-scrolled";
+import { signOut } from "@/lib/auth/actions";
 
-export function Header() {
+export function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
   const t = useTranslations("nav");
   const scrolled = useScrolled();
 
@@ -28,17 +29,33 @@ export function Header() {
             {t("about")}
           </Link>
 
-          {/* TODO (Feature 1): swap for auth-aware actions
-              (History + Sign out when authenticated). */}
-          <Link href="/sign-in" className="hover:underline">
-            {t("signIn")}
-          </Link>
-          <Link
-            href="/sign-up"
-            className="rounded bg-foreground px-3 py-1 text-background hover:opacity-90"
-          >
-            {t("signUp")}
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link href="/history" className="hover:underline">
+                {t("history")}
+              </Link>
+              <form action={signOut}>
+                <button
+                  type="submit"
+                  className="rounded bg-foreground px-3 py-1 text-background hover:opacity-90"
+                >
+                  {t("signOut")}
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link href="/sign-in" className="hover:underline">
+                {t("signIn")}
+              </Link>
+              <Link
+                href="/sign-up"
+                className="rounded bg-foreground px-3 py-1 text-background hover:opacity-90"
+              >
+                {t("signUp")}
+              </Link>
+            </>
+          )}
 
           <LocaleSwitcher />
         </nav>

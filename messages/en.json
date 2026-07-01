@@ -15,5 +15,28 @@
     "editorHint": "Paste or write your OpenAPI / Swagger specification here.",
     "viewerTitle": "Viewer",
     "viewerHint": "Endpoints will appear here once the specification is valid."
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "signUpTitle": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "failed": "Authentication failed. Please try again.",
+    "errors": {
+      "email": "Enter a valid email",
+      "min8": "At least 8 characters",
+      "letter": "At least one letter",
+      "digit": "At least one digit",
+      "special": "At least one special character"
+    }
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "retry": "Try again"
   }
 }

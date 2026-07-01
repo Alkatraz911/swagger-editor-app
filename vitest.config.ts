@@ -29,8 +29,9 @@ export default defineConfig({
         "src/proxy.ts",
         // next-intl server config (cookies + dynamic import) — integration glue.
         "src/i18n/request.ts",
-        // TODO (Feature 1): header gets auth-aware tests when auth lands.
-        "src/components/layout/header.tsx",
+        // Auth route pages: thin server components (getUser + redirect + render).
+        "src/app/sign-in/page.tsx",
+        "src/app/sign-up/page.tsx",
       ],
       thresholds: {
         statements: 80,
