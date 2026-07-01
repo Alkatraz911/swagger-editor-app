@@ -95,5 +95,27 @@
       "repository": "https://github.com/Alkatraz911/swagger-editor-app",
       "demo": "https://swagger-editor-app-rouge.vercel.app/"
     }
+  },
+  "viewer": {
+    "empty": "No specification yet",
+    "emptyHint": "Paste or write a valid OpenAPI / Swagger specification in the editor to see its endpoints here.",
+    "invalidTitle": "The specification is not valid",
+    "endpoints": "Endpoints",
+    "noEndpoints": "The specification has no endpoints.",
+    "selectPrompt": "Select an endpoint to see its details.",
+    "deprecated": "Deprecated",
+    "parameters": "Parameters",
+    "noParameters": "This operation has no parameters.",
+    "pathParams": "Path parameters",
+    "queryParams": "Query parameters",
+    "headerParams": "Header parameters",
+    "cookieParams": "Cookie parameters",
+    "required": "required",
+    "optional": "optional",
+    "requestBody": "Request body",
+    "responses": "Responses",
+    "schema": "Schema",
+    "example": "Example",
+    "noExample": "No example provided."
   }
 }

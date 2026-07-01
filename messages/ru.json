@@ -95,5 +95,27 @@
       "repository": "https://github.com/Alkatraz911/swagger-editor-app",
       "demo": "https://swagger-editor-app-rouge.vercel.app/"
     }
+  },
+  "viewer": {
+    "empty": "Спецификации пока нет",
+    "emptyHint": "Вставьте или напишите валидную спецификацию OpenAPI / Swagger в редакторе, чтобы увидеть её эндпоинты здесь.",
+    "invalidTitle": "Спецификация невалидна",
+    "endpoints": "Эндпоинты",
+    "noEndpoints": "В спецификации нет эндпоинтов.",
+    "selectPrompt": "Выберите эндпоинт, чтобы увидеть его детали.",
+    "deprecated": "Устарел",
+    "parameters": "Параметры",
+    "noParameters": "У этой операции нет параметров.",
+    "pathParams": "Параметры пути",
+    "queryParams": "Query-параметры",
+    "headerParams": "Параметры заголовков",
+    "cookieParams": "Параметры cookie",
+    "required": "обязательный",
+    "optional": "необязательный",
+    "requestBody": "Тело запроса",
+    "responses": "Ответы",
+    "schema": "Схема",
+    "example": "Пример",
+    "noExample": "Пример не указан."
   }
 }

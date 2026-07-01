@@ -1,17 +1,11 @@
 import { SpecEditor } from "@/components/editor/spec-editor";
-import { Pane } from "@/components/pane";
 import { SplitView } from "@/components/split-view";
-import { getTranslations } from "next-intl/server";
+import { SpecViewer } from "@/components/viewer/spec-viewer";
 
-export default async function HomePage() {
-  const t = await getTranslations("home");
-
+export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
-      <SplitView
-        start={<SpecEditor />}
-        end={<Pane title={t("viewerTitle")} hint={t("viewerHint")} />}
-      />
+      <SplitView start={<SpecEditor />} end={<SpecViewer />} />
     </div>
   );
 }
