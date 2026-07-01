@@ -3,6 +3,14 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { useSpecStore } from "@/store/spec-store";
 import { renderWithIntl } from "@/test/render-with-intl";
 
+function mockColorScheme(isDark: boolean) {
+  window.matchMedia = vi.fn().mockReturnValue({
+    matches: isDark,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  });
+}
+
 const { monacoPropsSpy } = vi.hoisted(() => ({
   monacoPropsSpy: vi.fn(),
 }));
@@ -11,6 +19,7 @@ vi.mock("next/dynamic", () => ({
   default: () => {
     return function MonacoEditorMock(props: {
       language?: string;
+      theme?: string;
       value?: string;
       onChange?: (value?: string) => void;
       onMount?: () => void;
@@ -21,6 +30,7 @@ vi.mock("next/dynamic", () => ({
         <textarea
           data-testid="monaco-mock"
           data-language={props.language}
+          data-theme={props.theme}
           value={props.value ?? ""}
           onChange={(event) => props.onChange?.(event.target.value)}
         />
@@ -35,6 +45,7 @@ describe("SpecEditor", () => {
   beforeEach(() => {
     useSpecStore.getState().reset();
     monacoPropsSpy.mockClear();
+    mockColorScheme(false);
   });
 
   it("renders Monaco with initial value from the store", () => {
@@ -62,6 +73,15 @@ describe("SpecEditor", () => {
     expect(screen.getByTestId("monaco-mock")).toHaveAttribute(
       "data-language",
       "json",
+    );
+  });
+
+  it("uses dark Monaco theme for dark system scheme", () => {
+    mockColorScheme(true);
+    renderWithIntl(<SpecEditor />);
+    expect(screen.getByTestId("monaco-mock")).toHaveAttribute(
+      "data-theme",
+      "vs-dark",
     );
   });
 
@@ -103,7 +123,7 @@ describe("SpecEditor", () => {
     });
   });
 
-  it("remounts editor when locale changes", async () => {
+  it("keeps editor mounted when locale changes", async () => {
     useSpecStore.setState({
       rawText: "openapi: 3.0.3",
       format: "yaml",
@@ -126,7 +146,7 @@ describe("SpecEditor", () => {
     rerenderWithLocale(<SpecEditor />, { locale: "ru" });
 
     const loader = screen.getByText("Редактор").closest("[aria-hidden]");
-    expect(loader).toHaveAttribute("aria-hidden", "false");
-    expect(monacoPropsSpy.mock.calls.length).toBeGreaterThan(mountCallsBefore);
+    expect(loader).toHaveAttribute("aria-hidden", "true");
+    expect(monacoPropsSpy.mock.calls.length).toBe(mountCallsBefore + 1);
   });
 });

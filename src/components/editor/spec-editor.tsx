@@ -1,8 +1,9 @@
 "use client";
 
 import { Pane } from "@/components/pane";
+import { useMonacoTheme } from "@/hooks/use-monaco-theme";
 import { useSpecStore } from "@/store/spec-store";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
 
@@ -21,8 +22,8 @@ function EditorPaneLoader() {
 }
 
 function SpecEditorPane() {
-  const t = useTranslations("home");
   const [editorReady, setEditorReady] = useState(false);
+  const theme = useMonacoTheme();
   const rawText = useSpecStore((state) => state.rawText);
   const format = useSpecStore((state) => state.format);
   const setRawText = useSpecStore((state) => state.setRawText);
@@ -64,8 +65,7 @@ function SpecEditorPane() {
             wordWrap: "on",
             scrollBeyondLastLine: false,
           }}
-          defaultValue={"// " + t("editorHint")}
-          theme="vs-dark"
+          theme={theme}
         />
       </div>
     </>
@@ -73,11 +73,9 @@ function SpecEditorPane() {
 }
 
 export function SpecEditor() {
-  const locale = useLocale();
-
   return (
     <section className="relative flex min-h-0 flex-1 flex-col pl-4">
-      <SpecEditorPane key={locale} />
+      <SpecEditorPane />
     </section>
   );
 }
