@@ -39,15 +39,11 @@ describe("SpecViewer", () => {
     expect(screen.getByText("Unexpected token")).toBeInTheDocument();
   });
 
-  it("lists endpoints and shows details on selection", () => {
+  it("lists endpoints and expands details on selection", () => {
     useSpecStore
       .getState()
       .setParsedResult({ parsedSpec: sampleSpec, errors: [] });
     renderWithIntl(<SpecViewer />);
-
-    expect(
-      screen.getByText("Select an endpoint to see its details."),
-    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /List users/ }));
 
@@ -55,13 +51,25 @@ describe("SpecViewer", () => {
     expect(screen.getByText("200")).toBeInTheDocument();
   });
 
-  it("shows a no-endpoints message when the spec has none", () => {
+  it("collapses details when the same endpoint is clicked again", () => {
     useSpecStore
       .getState()
-      .setParsedResult({
-        parsedSpec: { openapi: "3.0.0", paths: {} },
-        errors: [],
-      });
+      .setParsedResult({ parsedSpec: sampleSpec, errors: [] });
+    renderWithIntl(<SpecViewer />);
+
+    const row = screen.getByRole("button", { name: /List users/ });
+    fireEvent.click(row);
+    expect(row).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.click(row);
+    expect(row).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("shows a no-endpoints message when the spec has none", () => {
+    useSpecStore.getState().setParsedResult({
+      parsedSpec: { openapi: "3.0.0", paths: {} },
+      errors: [],
+    });
     renderWithIntl(<SpecViewer />);
     expect(
       screen.getByText("The specification has no endpoints."),

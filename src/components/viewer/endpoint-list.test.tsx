@@ -17,6 +17,12 @@ function makeEndpoint(
   };
 }
 
+const listProps = {
+  serverName: [{ url: "https://api.example.com" }],
+  title: "Sample API",
+  description: "Sample description",
+};
+
 const endpoints: Endpoint[] = [
   makeEndpoint({ method: "get", path: "/users", summary: "List users" }),
   makeEndpoint({ method: "post", path: "/users", summary: "Create user" }),
@@ -24,29 +30,32 @@ const endpoints: Endpoint[] = [
 ];
 
 describe("EndpointList", () => {
-  it("groups operations by path and shows the method badges", () => {
+  it("shows endpoints with method badges and paths", () => {
     renderWithIntl(
       <EndpointList
+        {...listProps}
         endpoints={endpoints}
         selectedId={null}
         onSelect={vi.fn()}
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "/users" })).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "/health" }),
+      screen.getByRole("button", { name: /List users/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText("List users")).toBeInTheDocument();
-    expect(screen.getByText("Create user")).toBeInTheDocument();
-    expect(screen.getAllByText("get")).toHaveLength(2);
-    expect(screen.getByText("post")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Create user/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Health check/ }),
+    ).toBeInTheDocument();
   });
 
   it("calls onSelect with the endpoint id when clicked", () => {
     const onSelect = vi.fn();
     renderWithIntl(
       <EndpointList
+        {...listProps}
         endpoints={endpoints}
         selectedId={null}
         onSelect={onSelect}
@@ -57,9 +66,10 @@ describe("EndpointList", () => {
     expect(onSelect).toHaveBeenCalledWith("post:/users");
   });
 
-  it("marks the selected endpoint via aria-current", () => {
+  it("marks the selected endpoint via aria-expanded and aria-current", () => {
     renderWithIntl(
       <EndpointList
+        {...listProps}
         endpoints={endpoints}
         selectedId={endpointId(endpoints[0])}
         onSelect={vi.fn()}
@@ -68,5 +78,27 @@ describe("EndpointList", () => {
 
     const selected = screen.getByRole("button", { name: /List users/ });
     expect(selected).toHaveAttribute("aria-current", "true");
+    expect(selected).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("expands details inline when selected", () => {
+    renderWithIntl(
+      <EndpointList
+        {...listProps}
+        endpoints={[
+          makeEndpoint({
+            method: "get",
+            path: "/users",
+            summary: "List users",
+            responses: [{ statusCode: "200", description: "OK", content: [] }],
+          }),
+        ]}
+        selectedId="get:/users"
+        onSelect={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Responses")).toBeInTheDocument();
+    expect(screen.getByText("200")).toBeInTheDocument();
   });
 });

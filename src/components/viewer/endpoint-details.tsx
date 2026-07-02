@@ -75,7 +75,7 @@ function ParameterTable({
         {parameters.map((param) => (
           <li
             key={param.name}
-            className="rounded border border-black/10 p-2 text-sm dark:border-white/10"
+            className="rounded border border-black/10 p-2 text-sm dark:border-white/10 bg-white"
           >
             <div className="flex flex-wrap items-baseline gap-2">
               <span className="font-mono font-medium">{param.name}</span>
@@ -173,7 +173,9 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
           <p className="text-sm opacity-70">{endpoint.description}</p>
         ) : null}
       </header>
-
+      <button className="bg-white text-black text-sm font-medium px-2 py-1 rounded-md cursor-pointer border border-black/100 dark:border-white/10 w-20 ml-auto hover:bg-white/50 transition-colors duration-200 ease-in-out dark:hover:bg-white/50">
+        Try it out
+      </button>
       <Section title={t("parameters")}>
         {parameterGroups.length > 0 ? (
           parameterGroups.map((group) => (

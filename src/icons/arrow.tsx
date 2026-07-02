@@ -1,6 +1,7 @@
-export function ArrowIcon() {
+export function ArrowIcon({ className }: { className?: string }) {
   return (
     <svg
+      className={className}
       fill="#9c9c9c"
       width="15"
       height="15"

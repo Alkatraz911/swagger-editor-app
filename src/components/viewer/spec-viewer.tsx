@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSpecStore } from "@/store/spec-store";
 import { getEndpoints } from "@/lib/openapi/endpoints";
-import { EndpointList, endpointId, ServerName } from "./endpoint-list";
-import { EndpointDetails } from "./endpoint-details";
+import { EndpointList, ServerName } from "./endpoint-list";
 
 /** Dev-only flag: preload a sample spec so the Viewer can be checked in-browser. */
 const DEMO_ENABLED = process.env.NEXT_PUBLIC_VIEWER_DEMO === "true";
@@ -73,33 +72,25 @@ export function SpecViewer() {
     return <CenteredMessage title={t("noEndpoints")} />;
   }
 
-  const selected =
-    endpoints.find((endpoint) => endpointId(endpoint) === selectedId) ?? null;
+  function handleSelect(id: string) {
+    setSelectedId((current) => (current === id ? null : id));
+  }
 
   return (
-    <div className="flex h-full flex-col divide-y divide-black/10 dark:divide-white/10">
-      <div className="max-h-[45%] shrink-0 overflow-auto p-4">
-        <EndpointList
-          serverName={(parsedSpec.servers as ServerName[]) || []}
-          endpoints={endpoints}
-          selectedId={selected ? endpointId(selected) : null}
-          onSelect={setSelectedId}
-          title={
-            (parsedSpec.info as { title: string })?.title || "Swagger Viewer"
-          }
-          description={
-            (parsedSpec.info as { description: string })?.description ||
-            "Swagger Viewer is a tool that allows you to view and interact with Swagger specifications."
-          }
-        />
-      </div>
-      <div className="flex-1 overflow-auto p-4">
-        {selected ? (
-          <EndpointDetails endpoint={selected} />
-        ) : (
-          <p className="text-sm opacity-60">{t("selectPrompt")}</p>
-        )}
-      </div>
+    <div className="h-full overflow-auto p-4">
+      <EndpointList
+        serverName={(parsedSpec.servers as ServerName[]) || []}
+        endpoints={endpoints}
+        selectedId={selectedId}
+        onSelect={handleSelect}
+        title={
+          (parsedSpec.info as { title: string })?.title || "Swagger Viewer"
+        }
+        description={
+          (parsedSpec.info as { description: string })?.description ||
+          "Swagger Viewer is a tool that allows you to view and interact with Swagger specifications."
+        }
+      />
     </div>
   );
 }
