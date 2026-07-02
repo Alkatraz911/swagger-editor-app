@@ -12,6 +12,15 @@ paths: {}
 `;
 
 describe("convertSpec", () => {
+  it("returns source text unchanged when source and target formats match", () => {
+    const result = convertSpec(jsonSpec, "json", "json");
+
+    expect(result).toEqual({
+      text: jsonSpec,
+      error: null,
+    });
+  });
+
   it("converts yaml input to pretty json", () => {
     const result = convertSpec(yamlSpec, "yaml", "json");
 
@@ -54,10 +63,21 @@ describe("convertSpec", () => {
     });
   });
 
-  it("returns an error for invalid source text", () => {
+  it("returns a parse error for malformed json without attempting conversion", () => {
     const result = convertSpec('{"openapi":"3.0.0"', "json", "yaml");
 
-    expect(result.text).toBeNull();
-    expect(result.error).not.toBeNull();
+    expect(result).toEqual({
+      text: null,
+      error: expect.stringMatching(/json|unexpected|end/i),
+    });
+  });
+
+  it("returns a parse error when the document root is not an object", () => {
+    const result = convertSpec("[]", "json", "yaml");
+
+    expect(result).toEqual({
+      text: null,
+      error: "Specification root must be an object.",
+    });
   });
 });

@@ -357,6 +357,198 @@ describe("SpecEditor", () => {
     vi.useRealTimers();
   });
 
+  it("clears parsed result when editor content is empty", async () => {
+    vi.useFakeTimers();
+    useSpecStore.setState({
+      rawText: '{"openapi":"3.0.0"}',
+      parsedSpec: { openapi: "3.0.0" },
+      errors: ["old error"],
+    });
+
+    renderWithIntl(<SpecEditor />);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: { value: "   " },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(useSpecStore.getState().parsedSpec).toBeNull();
+    expect(useSpecStore.getState().errors).toEqual([]);
+
+    vi.useRealTimers();
+  });
+
+  it("syncs store format when detected format differs from stored format", async () => {
+    vi.useFakeTimers();
+    useSpecStore.setState({
+      rawText: "openapi: 3.0.3",
+      format: "json",
+    });
+
+    renderWithIntl(<SpecEditor />);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(useSpecStore.getState().format).toBe("yaml");
+
+    vi.useRealTimers();
+  });
+
+  it("ignores stale validation results after rapid edits", async () => {
+    vi.useFakeTimers();
+    parseSpecSpy
+      .mockReturnValueOnce({
+        data: null,
+        error: "Stale parse error",
+      })
+      .mockReturnValue({
+        data: {
+          openapi: "3.0.0",
+          info: { title: "Test API", version: "1.0.0" },
+          paths: {},
+        },
+        error: null,
+      });
+    validateSpecSpy.mockResolvedValue([]);
+
+    renderWithIntl(<SpecEditor />);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: { value: "bad input" },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: {
+        value:
+          '{"openapi":"3.0.0","info":{"title":"Test API","version":"1.0.0"},"paths":{}}',
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(useSpecStore.getState().errors).toEqual([]);
+    expect(useSpecStore.getState().parsedSpec).toMatchObject({
+      openapi: "3.0.0",
+    });
+
+    vi.useRealTimers();
+  });
+
+  it("uses fallback message when parse fails without an error string", async () => {
+    vi.useFakeTimers();
+    parseSpecSpy.mockReturnValue({
+      data: null,
+      error: null,
+    });
+
+    renderWithIntl(<SpecEditor />);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: { value: "not valid" },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(useSpecStore.getState().errors).toEqual([
+      "Failed to parse specification.",
+    ]);
+
+    vi.useRealTimers();
+  });
+
+  it("switches format without conversion when editor is empty", () => {
+    useSpecStore.setState({
+      rawText: "",
+      format: "yaml",
+      parsedSpec: { openapi: "3.0.3" },
+      errors: ["old error"],
+    });
+
+    renderWithIntl(<SpecEditor />);
+
+    fireEvent.click(screen.getByTestId("format-switch-button"));
+
+    expect(convertSpecSpy).not.toHaveBeenCalled();
+    expect(useSpecStore.getState().parsedSpec).toBeNull();
+    expect(useSpecStore.getState().errors).toEqual([]);
+  });
+
+  it("clears Monaco markers on unmount", () => {
+    const model = {};
+    const editor = {
+      getModel: () => model,
+    };
+    const monaco = {
+      MarkerSeverity: { Error: 8 },
+      editor: { setModelMarkers: setModelMarkersSpy },
+    };
+
+    const { unmount } = renderWithIntl(<SpecEditor />);
+    monacoPropsSpy.mock.calls[0][0].onMount?.(editor, monaco);
+
+    unmount();
+
+    expect(setModelMarkersSpy).toHaveBeenCalledWith(
+      model,
+      "openapi-validation",
+      [],
+    );
+  });
+
+  it("skips marker updates when Monaco has no model", async () => {
+    vi.useFakeTimers();
+    parseSpecSpy.mockReturnValue({
+      data: {
+        openapi: "3.0.0",
+        info: { title: "Test API", version: "1.0.0" },
+        paths: {},
+      },
+      error: null,
+    });
+    validateSpecSpy.mockResolvedValue(["Validation failed"]);
+
+    renderWithIntl(<SpecEditor />);
+
+    const editor = {
+      getModel: () => null,
+    };
+    const monaco = {
+      MarkerSeverity: { Error: 8 },
+      editor: { setModelMarkers: setModelMarkersSpy },
+    };
+
+    monacoPropsSpy.mock.calls[0][0].onMount?.(editor, monaco);
+    setModelMarkersSpy.mockClear();
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: {
+        value:
+          '{"openapi":"3.0.0","info":{"title":"Test API","version":"1.0.0"},"paths":{}}',
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(setModelMarkersSpy).not.toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
   it("writes Monaco markers for validation errors", async () => {
     vi.useFakeTimers();
     parseSpecSpy.mockReturnValue({
@@ -406,6 +598,223 @@ describe("SpecEditor", () => {
           message: "Validation failed at line 2, column 4",
           startLineNumber: 2,
           startColumn: 4,
+        }),
+      ]),
+    );
+
+    vi.useRealTimers();
+  });
+
+  it("maps tuple-style error locations to Monaco markers", async () => {
+    vi.useFakeTimers();
+    parseSpecSpy.mockReturnValue({
+      data: {
+        openapi: "3.0.0",
+        info: { title: "Test API", version: "1.0.0" },
+        paths: {},
+      },
+      error: null,
+    });
+    validateSpecSpy.mockResolvedValue(["Validation failed at (3:7)"]);
+
+    renderWithIntl(<SpecEditor />);
+
+    const model = {
+      getLineCount: () => 10,
+      getLineMaxColumn: () => 120,
+    };
+    const editor = {
+      getModel: () => model,
+    };
+    const monaco = {
+      MarkerSeverity: { Error: 8 },
+      editor: { setModelMarkers: setModelMarkersSpy },
+    };
+
+    monacoPropsSpy.mock.calls[0][0].onMount?.(editor, monaco);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: {
+        value:
+          '{"openapi":"3.0.0","info":{"title":"Test API","version":"1.0.0"},"paths":{}}',
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(setModelMarkersSpy).toHaveBeenLastCalledWith(
+      model,
+      "openapi-validation",
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Validation failed at (3:7)",
+          startLineNumber: 3,
+          startColumn: 7,
+        }),
+      ]),
+    );
+
+    vi.useRealTimers();
+  });
+
+  it("maps position-style error locations to Monaco markers", async () => {
+    vi.useFakeTimers();
+    const rawText = "abc\ndef";
+    useSpecStore.setState({ rawText, format: "yaml" });
+    parseSpecSpy.mockReturnValue({
+      data: {
+        openapi: "3.0.0",
+        info: { title: "Test API", version: "1.0.0" },
+        paths: {},
+      },
+      error: null,
+    });
+    validateSpecSpy.mockResolvedValue(["Syntax error at position 5"]);
+
+    renderWithIntl(<SpecEditor />);
+
+    const model = {
+      getLineCount: () => 10,
+      getLineMaxColumn: (line: number) => (line === 2 ? 3 : 120),
+    };
+    const editor = {
+      getModel: () => model,
+    };
+    const monaco = {
+      MarkerSeverity: { Error: 8 },
+      editor: { setModelMarkers: setModelMarkersSpy },
+    };
+
+    monacoPropsSpy.mock.calls[0][0].onMount?.(editor, monaco);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: { value: rawText },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(setModelMarkersSpy).toHaveBeenLastCalledWith(
+      model,
+      "openapi-validation",
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Syntax error at position 5",
+          startLineNumber: 2,
+          startColumn: 2,
+        }),
+      ]),
+    );
+
+    vi.useRealTimers();
+  });
+
+  it("defaults marker location to line 1 column 1 for unrecognized errors", async () => {
+    vi.useFakeTimers();
+    parseSpecSpy.mockReturnValue({
+      data: {
+        openapi: "3.0.0",
+        info: { title: "Test API", version: "1.0.0" },
+        paths: {},
+      },
+      error: null,
+    });
+    validateSpecSpy.mockResolvedValue(["Unknown validation failure"]);
+
+    renderWithIntl(<SpecEditor />);
+
+    const model = {
+      getLineCount: () => 10,
+      getLineMaxColumn: () => 120,
+    };
+    const editor = {
+      getModel: () => model,
+    };
+    const monaco = {
+      MarkerSeverity: { Error: 8 },
+      editor: { setModelMarkers: setModelMarkersSpy },
+    };
+
+    monacoPropsSpy.mock.calls[0][0].onMount?.(editor, monaco);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: {
+        value:
+          '{"openapi":"3.0.0","info":{"title":"Test API","version":"1.0.0"},"paths":{}}',
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(setModelMarkersSpy).toHaveBeenLastCalledWith(
+      model,
+      "openapi-validation",
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: "Unknown validation failure",
+          startLineNumber: 1,
+          startColumn: 1,
+        }),
+      ]),
+    );
+
+    vi.useRealTimers();
+  });
+
+  it("adjusts marker columns when the error is at the end of a line", async () => {
+    vi.useFakeTimers();
+    parseSpecSpy.mockReturnValue({
+      data: {
+        openapi: "3.0.0",
+        info: { title: "Test API", version: "1.0.0" },
+        paths: {},
+      },
+      error: null,
+    });
+    validateSpecSpy.mockResolvedValue([
+      "Validation failed at line 2, column 5",
+    ]);
+
+    renderWithIntl(<SpecEditor />);
+
+    const model = {
+      getLineCount: () => 10,
+      getLineMaxColumn: () => 5,
+    };
+    const editor = {
+      getModel: () => model,
+    };
+    const monaco = {
+      MarkerSeverity: { Error: 8 },
+      editor: { setModelMarkers: setModelMarkersSpy },
+    };
+
+    monacoPropsSpy.mock.calls[0][0].onMount?.(editor, monaco);
+
+    fireEvent.change(screen.getByTestId("monaco-mock"), {
+      target: {
+        value:
+          '{"openapi":"3.0.0","info":{"title":"Test API","version":"1.0.0"},"paths":{}}',
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
+    expect(setModelMarkersSpy).toHaveBeenLastCalledWith(
+      model,
+      "openapi-validation",
+      expect.arrayContaining([
+        expect.objectContaining({
+          startLineNumber: 2,
+          startColumn: 4,
+          endColumn: 5,
         }),
       ]),
     );
