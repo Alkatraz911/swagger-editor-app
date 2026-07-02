@@ -116,6 +116,7 @@
     "responses": "Responses",
     "schema": "Schema",
     "example": "Example",
+    "mediaType": "Media type",
     "noExample": "No example provided."
   }
 }

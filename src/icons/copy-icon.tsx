@@ -29,7 +29,7 @@ export function CopyIcon({ text }: { text: string }) {
         ></path>
       </svg>
       {isCopied && (
-        <span className="text-[10px] bg-black text-white dark:text-gray-400 absolute top-[-25px] left-[-35px] bg-black dark:bg-white rounded-md px-2 py-1 shadow-md z-10">
+        <span className="z-50 text-[10px] bg-black text-white dark:text-gray-400 absolute top-[-3px] left-[-55px] bg-black dark:bg-white rounded-md px-2 py-1 shadow-md z-10">
           Copied
         </span>
       )}

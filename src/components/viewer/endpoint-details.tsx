@@ -1,3 +1,6 @@
+"use client";
+
+import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import type {
   Endpoint,
@@ -100,32 +103,54 @@ function ParameterTable({
 
 function MediaContent({ content }: { content: MediaTypeContent[] }) {
   const t = useTranslations("viewer");
+  const selectId = useId();
+  const [selectedType, setSelectedType] = useState(
+    () => content[0]?.mediaType ?? "",
+  );
+
+  if (content.length === 0) return null;
+
+  const selected =
+    content.find((media) => media.mediaType === selectedType) ?? content[0];
 
   return (
     <div className="flex flex-col gap-3">
-      {content.map((media) => (
-        <div key={media.mediaType} className="flex flex-col gap-2">
-          <span className="font-mono text-xs opacity-60">
-            {media.mediaType}
-          </span>
-          {media.schema ? (
-            <div>
-              <p className="mb-1 text-xs font-medium opacity-70">
-                {t("schema")}
-              </p>
-              <CodeBlock value={media.schema} />
-            </div>
-          ) : null}
-          {media.example !== undefined ? (
-            <div>
-              <p className="mb-1 text-xs font-medium opacity-70">
-                {t("example")}
-              </p>
-              <CodeBlock value={media.example} />
-            </div>
-          ) : null}
+      <div className="flex flex-col gap-1">
+        <label htmlFor={selectId} className="text-xs font-medium opacity-70">
+          {t("mediaType")}
+        </label>
+        <select
+          id={selectId}
+          value={selectedType}
+          onChange={(event) => setSelectedType(event.target.value)}
+          className="w-full rounded-md border border-black/10 bg-white px-2 py-1.5 font-mono text-xs dark:border-white/10 dark:bg-white/5"
+        >
+          {content.map((media) => (
+            <option key={media.mediaType} value={media.mediaType}>
+              {media.mediaType}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {selected.schema ? (
+        <div key={`${selectedType}-schema`}>
+          <p className="mb-1 text-xs font-medium opacity-70">{t("schema")}</p>
+          <CodeBlock
+            contentKey={`${selectedType}-schema`}
+            value={selected.schema}
+          />
         </div>
-      ))}
+      ) : null}
+      {selected.example !== undefined ? (
+        <div key={`${selectedType}-example`}>
+          <p className="mb-1 text-xs font-medium opacity-70">{t("example")}</p>
+          <CodeBlock
+            contentKey={`${selectedType}-example`}
+            value={selected.example}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -165,6 +190,9 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
               {t("deprecated")}
             </span>
           ) : null}
+          <button className="bg-white text-black text-sm font-medium px-2 py-1 rounded-md cursor-pointer border border-black/100 dark:border-white/10 w-20 ml-auto hover:bg-white/50 transition-colors duration-200 ease-in-out dark:hover:bg-white/50">
+            Try it out
+          </button>
         </div>
         {endpoint.summary ? (
           <p className="text-sm font-medium">{endpoint.summary}</p>
@@ -173,9 +201,6 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
           <p className="text-sm opacity-70">{endpoint.description}</p>
         ) : null}
       </header>
-      <button className="bg-white text-black text-sm font-medium px-2 py-1 rounded-md cursor-pointer border border-black/100 dark:border-white/10 w-20 ml-auto hover:bg-white/50 transition-colors duration-200 ease-in-out dark:hover:bg-white/50">
-        Try it out
-      </button>
       <Section title={t("parameters")}>
         {parameterGroups.length > 0 ? (
           parameterGroups.map((group) => (
@@ -193,7 +218,10 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
       {endpoint.requestBody ? (
         <Section title={t("requestBody")}>
           {endpoint.requestBody.content.length > 0 ? (
-            <MediaContent content={endpoint.requestBody.content} />
+            <MediaContent
+              key="request-body"
+              content={endpoint.requestBody.content}
+            />
           ) : (
             <p className="text-sm opacity-60">{t("noExample")}</p>
           )}
@@ -217,7 +245,10 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
                 ) : null}
               </div>
               {response.content.length > 0 ? (
-                <MediaContent content={response.content} />
+                <MediaContent
+                  key={`response-${response.statusCode}`}
+                  content={response.content}
+                />
               ) : null}
             </div>
           ))}

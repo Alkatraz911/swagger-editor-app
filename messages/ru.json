@@ -116,6 +116,7 @@
     "responses": "Ответы",
     "schema": "Схема",
     "example": "Пример",
+    "mediaType": "Тип медиа",
     "noExample": "Пример не указан."
   }
 }
