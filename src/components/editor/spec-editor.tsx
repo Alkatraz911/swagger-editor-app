@@ -1,5 +1,6 @@
 "use client";
 
+import { FormatSwitchButton } from "@/components/editor/format-switch-button";
 import { Pane } from "@/components/pane";
 import { useMonacoTheme } from "@/hooks/use-monaco-theme";
 import { detectFormat } from "@/lib/openapi/detect-format";
@@ -75,6 +76,18 @@ function extractMarkerLocation(
   }
 
   return clampMarkerLocation(model, 1, 1);
+}
+
+function getMarkerColumns(location: { column: number; maxColumn: number }) {
+  let startColumn = location.column;
+  let endColumn = Math.min(startColumn + 1, location.maxColumn);
+
+  if (endColumn <= startColumn) {
+    startColumn = Math.max(1, location.maxColumn - 1);
+    endColumn = location.maxColumn;
+  }
+
+  return { startColumn, endColumn };
 }
 
 function EditorPaneLoader() {
@@ -181,13 +194,13 @@ function SpecEditorPane() {
 
     const markers: Monaco.editor.IMarkerData[] = errors.map((error) => {
       const location = extractMarkerLocation(error, model, rawText);
-      const endColumn = Math.min(location.column + 1, location.maxColumn);
+      const { startColumn, endColumn } = getMarkerColumns(location);
 
       return {
         severity: monaco.MarkerSeverity.Error,
         message: error,
         startLineNumber: location.lineNumber,
-        startColumn: location.column,
+        startColumn,
         endLineNumber: location.lineNumber,
         endColumn,
       };
@@ -211,6 +224,7 @@ function SpecEditorPane() {
 
   return (
     <>
+      <FormatSwitchButton />
       <div
         aria-hidden={editorReady}
         className={`absolute inset-0 z-10 bg-background transition-opacity duration-300 ${
@@ -220,7 +234,7 @@ function SpecEditorPane() {
         <EditorPaneLoader />
       </div>
       <div
-        className={`min-h-0 flex-1 transition-opacity duration-300 ${
+        className={`spec-editor-monaco min-h-0 flex-1 transition-opacity duration-300 ${
           editorReady ? "opacity-100" : "opacity-0"
         }`}
       >

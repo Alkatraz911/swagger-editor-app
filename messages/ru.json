@@ -14,6 +14,9 @@
     "editorTitle": "Редактор",
     "editorHint": "Вставьте или напишите здесь спецификацию OpenAPI / Swagger.",
     "editorErrorsTitle": "Проблемы спецификации",
+    "editorSwitchToFormat": "Переключить на {format}",
+    "editorSwitchDisabledHint": "Исправьте синтаксические ошибки перед сменой формата.",
+    "editorSwitchFailed": "Не удалось конвертировать формат: {error}",
     "viewerTitle": "Просмотрщик",
     "viewerHint": "Эндпоинты появятся здесь, как только спецификация станет валидной."
   },

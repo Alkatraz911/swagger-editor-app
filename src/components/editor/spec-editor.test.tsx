@@ -11,13 +11,19 @@ function mockColorScheme(isDark: boolean) {
   });
 }
 
-const { monacoPropsSpy, parseSpecSpy, validateSpecSpy, setModelMarkersSpy } =
-  vi.hoisted(() => ({
-    monacoPropsSpy: vi.fn(),
-    parseSpecSpy: vi.fn(),
-    validateSpecSpy: vi.fn(),
-    setModelMarkersSpy: vi.fn(),
-  }));
+const {
+  monacoPropsSpy,
+  convertSpecSpy,
+  parseSpecSpy,
+  validateSpecSpy,
+  setModelMarkersSpy,
+} = vi.hoisted(() => ({
+  monacoPropsSpy: vi.fn(),
+  convertSpecSpy: vi.fn(),
+  parseSpecSpy: vi.fn(),
+  validateSpecSpy: vi.fn(),
+  setModelMarkersSpy: vi.fn(),
+}));
 
 vi.mock("next/dynamic", () => ({
   default: () => {
@@ -50,6 +56,11 @@ vi.mock("@/lib/openapi/parse", () => ({
     validateSpecSpy(...args),
 }));
 
+vi.mock("@/lib/openapi/convert", () => ({
+  convertSpec: (...args: Parameters<typeof convertSpecSpy>) =>
+    convertSpecSpy(...args),
+}));
+
 import { SpecEditor } from "./spec-editor";
 
 describe("SpecEditor", () => {
@@ -58,9 +69,18 @@ describe("SpecEditor", () => {
     useSpecStore.getState().reset();
     monacoPropsSpy.mockClear();
     mockColorScheme(false);
+    convertSpecSpy.mockReset();
     parseSpecSpy.mockReset();
     setModelMarkersSpy.mockReset();
     validateSpecSpy.mockReset();
+    parseSpecSpy.mockReturnValue({
+      data: { openapi: "3.0.0", info: { title: "Mock", version: "1.0.0" } },
+      error: null,
+    });
+    convertSpecSpy.mockReturnValue({
+      text: '{\n  "openapi": "3.0.0"\n}\n',
+      error: null,
+    });
     validateSpecSpy.mockResolvedValue([]);
   });
 
@@ -120,6 +140,78 @@ describe("SpecEditor", () => {
     onChange?.(undefined);
 
     expect(useSpecStore.getState().rawText).toBe("");
+  });
+
+  it("switches format and replaces editor text when conversion succeeds", () => {
+    useSpecStore.setState({
+      rawText: "openapi: 3.0.3",
+      format: "yaml",
+      parsedSpec: { openapi: "3.0.3" },
+      errors: ["Old error"],
+    });
+    convertSpecSpy.mockReturnValue({
+      text: '{\n  "openapi": "3.0.3"\n}\n',
+      error: null,
+    });
+
+    renderWithIntl(<SpecEditor />);
+
+    fireEvent.click(screen.getByTestId("format-switch-button"));
+
+    expect(convertSpecSpy).toHaveBeenCalledWith(
+      "openapi: 3.0.3",
+      "yaml",
+      "json",
+    );
+    expect(useSpecStore.getState().format).toBe("json");
+    expect(useSpecStore.getState().rawText).toBe(
+      '{\n  "openapi": "3.0.3"\n}\n',
+    );
+    expect(useSpecStore.getState().errors).toEqual([]);
+  });
+
+  it("disables the format switch button when input cannot be parsed", () => {
+    useSpecStore.setState({
+      rawText: '{"openapi":"3.0.3"',
+      format: "json",
+    });
+    parseSpecSpy.mockReturnValue({
+      data: null,
+      error: "Unexpected end of JSON input",
+    });
+
+    renderWithIntl(<SpecEditor />);
+
+    const button = screen.getByTestId("format-switch-button");
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute(
+      "title",
+      "Fix syntax issues before switching format.",
+    );
+  });
+
+  it("shows conversion errors without changing the active format", () => {
+    useSpecStore.setState({
+      rawText: "openapi: 3.0.3",
+      format: "yaml",
+      parsedSpec: { openapi: "3.0.3" },
+      errors: [],
+    });
+    convertSpecSpy.mockReturnValue({
+      text: null,
+      error: "Unexpected end of JSON input",
+    });
+
+    renderWithIntl(<SpecEditor />);
+
+    fireEvent.click(screen.getByTestId("format-switch-button"));
+
+    expect(useSpecStore.getState().format).toBe("yaml");
+    expect(useSpecStore.getState().rawText).toBe("openapi: 3.0.3");
+    expect(useSpecStore.getState().parsedSpec).toBeNull();
+    expect(useSpecStore.getState().errors).toEqual([
+      "Could not convert between formats: Unexpected end of JSON input",
+    ]);
   });
 
   it("marks the editor as ready when Monaco mounts", async () => {
