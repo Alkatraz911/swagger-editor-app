@@ -15,12 +15,6 @@ export function FormatSwitchButton() {
   const setParsedResult = useSpecStore((state) => state.setParsedResult);
   const switchTargetFormat = format === "json" ? "yaml" : "json";
   const formatSwitchState = useMemo(() => {
-    if (!rawText.trim()) {
-      return {
-        canSwitch: true,
-      };
-    }
-
     const parsed = parseSpec(rawText, format);
     return {
       canSwitch: !parsed.error && !!parsed.data,
@@ -61,7 +55,7 @@ export function FormatSwitchButton() {
   ]);
 
   return (
-    <div className="z-20 flex items-center justify-end gap-2 px-2 pb-2">
+    <div className="z-20 flex shrink-0 items-center justify-end gap-2 px-2 pb-2">
       <span className="text-xs font-medium tracking-wide opacity-70">
         {format.toUpperCase()}
       </span>
