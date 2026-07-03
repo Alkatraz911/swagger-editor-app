@@ -23,7 +23,7 @@
   "home": {
     "editorTitle": "Редактор",
     "editorHint": "Вставьте или напишите здесь спецификацию OpenAPI / Swagger.",
-    "editorErrorsTitle": "Проблемы спецификации",
+    "editorErrorsTitle": "Ошибка валидации!",
     "editorSwitchToFormat": "Переключить на {format}",
     "editorSwitchDisabledHint": "Исправьте синтаксические ошибки перед сменой формата.",
     "editorSwitchFailed": "Не удалось конвертировать формат: {error}",

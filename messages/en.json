@@ -23,7 +23,7 @@
   "home": {
     "editorTitle": "Editor",
     "editorHint": "Paste or write your OpenAPI / Swagger specification here.",
-    "editorErrorsTitle": "Specification issues",
+    "editorErrorsTitle": "Validation error!",
     "editorSwitchToFormat": "Switch to {format}",
     "editorSwitchDisabledHint": "Fix syntax issues before switching format.",
     "editorSwitchFailed": "Could not convert between formats: {error}",
