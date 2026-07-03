@@ -1,6 +1,7 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
 import YAML from "yaml";
 import type { SpecFormat } from "./detect-format";
+import { createCategoryError, SPEC_ERROR_KEYS } from "./spec-errors";
 
 type ParsedSpecData = Record<string, unknown>;
 
@@ -20,7 +21,7 @@ export function parseSpec(text: string, format: SpecFormat): ParseSpecResult {
     if (!isObjectRecord(parsed)) {
       return {
         data: null,
-        error: "Specification root must be an object.",
+        error: SPEC_ERROR_KEYS.rootMustBeObject,
       };
     }
 
@@ -29,19 +30,32 @@ export function parseSpec(text: string, format: SpecFormat): ParseSpecResult {
       error: null,
     };
   } catch (error) {
+    if (format === "yaml" && error instanceof Error) {
+      const firstLine = error.message.split("\n")[0]?.trim();
+      return {
+        data: null,
+        error: firstLine
+          ? createCategoryError({ category: "yaml", detail: firstLine })
+          : SPEC_ERROR_KEYS.failedToParse,
+      };
+    }
+
     return {
       data: null,
       error:
         error instanceof Error
-          ? error.message
-          : "Failed to parse specification.",
+          ? createCategoryError({
+              category: "json",
+              detail: error.message,
+            })
+          : SPEC_ERROR_KEYS.failedToParse,
     };
   }
 }
 
 export async function validateSpec(data: unknown): Promise<string[]> {
   if (!isObjectRecord(data)) {
-    return ["Specification root must be an object."];
+    return [SPEC_ERROR_KEYS.rootMustBeObject];
   }
 
   try {
@@ -54,8 +68,11 @@ export async function validateSpec(data: unknown): Promise<string[]> {
   } catch (error) {
     return [
       error instanceof Error
-        ? error.message
-        : "Specification is not a valid OpenAPI document.",
+        ? createCategoryError({
+            category: "specification",
+            detail: error.message,
+          })
+        : SPEC_ERROR_KEYS.invalidOpenApiDocument,
     ];
   }
 }

@@ -1,6 +1,7 @@
 import YAML from "yaml";
 import type { SpecFormat } from "./detect-format";
 import { parseSpec } from "./parse";
+import { SPEC_ERROR_KEYS } from "./spec-errors";
 
 export interface ConvertSpecResult {
   text: string | null;
@@ -32,7 +33,7 @@ export function convertSpec(
   if (parsed.error || !parsed.data) {
     return {
       text: null,
-      error: parsed.error ?? "Failed to parse specification.",
+      error: parsed.error ?? SPEC_ERROR_KEYS.failedToParse,
     };
   }
 

@@ -1,11 +1,12 @@
 "use client";
 
 import { EditorErrors } from "@/components/editor/editor-errors";
-import { FormatSwitchButton } from "@/components/editor/format-switch-button";
+import { EditorToolbar } from "@/components/editor/editor-toolbar";
 import { Pane } from "@/components/pane";
 import { useMonacoTheme } from "@/hooks/use-monaco-theme";
 import { detectFormat } from "@/lib/openapi/detect-format";
 import { parseSpec, validateSpec } from "@/lib/openapi/parse";
+import { SPEC_ERROR_KEYS, translateSpecError } from "@/lib/openapi/spec-errors";
 import { useSpecStore } from "@/store/spec-store";
 import type * as Monaco from "monaco-editor";
 import { useTranslations } from "next-intl";
@@ -102,6 +103,7 @@ function EditorPaneLoader() {
 }
 
 function SpecEditorPane() {
+  const tSpecErrors = useTranslations("openapi.errors");
   const [editorReady, setEditorReady] = useState(false);
   const theme = useMonacoTheme();
   const validationRunRef = useRef(0);
@@ -157,7 +159,7 @@ function SpecEditorPane() {
         }
         setParsedResult({
           parsedSpec: null,
-          errors: [parsed.error ?? "Failed to parse specification."],
+          errors: [parsed.error ?? SPEC_ERROR_KEYS.failedToParse],
         });
         return;
       }
@@ -198,7 +200,7 @@ function SpecEditorPane() {
 
       return {
         severity: monaco.MarkerSeverity.Error,
-        message: error,
+        message: translateSpecError(error, tSpecErrors),
         startLineNumber: location.lineNumber,
         startColumn,
         endLineNumber: location.lineNumber,
@@ -207,7 +209,7 @@ function SpecEditorPane() {
     });
 
     monaco.editor.setModelMarkers(model, MARKER_OWNER, markers);
-  }, [editorReady, errors, rawText]);
+  }, [editorReady, errors, rawText, tSpecErrors]);
 
   useEffect(() => {
     return () => {
@@ -224,7 +226,7 @@ function SpecEditorPane() {
 
   return (
     <>
-      <FormatSwitchButton />
+      <EditorToolbar ready={editorReady} />
       <div
         aria-hidden={editorReady}
         className={`absolute inset-0 z-10 bg-background transition-opacity duration-300 ${

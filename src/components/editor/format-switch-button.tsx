@@ -55,7 +55,7 @@ export function FormatSwitchButton() {
   ]);
 
   return (
-    <div className="z-20 flex shrink-0 items-center justify-end gap-2 px-2 pb-2">
+    <>
       <span className="text-xs font-medium tracking-wide opacity-70">
         {format.toUpperCase()}
       </span>
@@ -78,6 +78,6 @@ export function FormatSwitchButton() {
           format: switchTargetFormat.toUpperCase(),
         })}
       </button>
-    </div>
+    </>
   );
 }

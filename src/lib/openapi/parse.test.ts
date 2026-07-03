@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import SwaggerParser from "@apidevtools/swagger-parser";
 import { parseSpec, validateSpec } from "./parse";
+import {
+  createCategoryError,
+  parseCategoryError,
+  SPEC_ERROR_KEYS,
+} from "./spec-errors";
 
 const validOpenApiText = JSON.stringify({
   openapi: "3.0.0",
@@ -11,6 +17,10 @@ const validOpenApiText = JSON.stringify({
 });
 
 describe("parseSpec", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("parses valid json text", () => {
     const result = parseSpec(validOpenApiText, "json");
     expect(result.error).toBeNull();
@@ -47,35 +57,51 @@ paths: {}
     });
   });
 
-  it("returns parse error for malformed json", () => {
+  it("returns a categorized parse error for malformed json", () => {
     const result = parseSpec('{"openapi": "3.0.0"', "json");
 
-    expect(result).toEqual({
-      data: null,
-      error: expect.stringMatching(/json|unexpected|end/i),
+    expect(parseCategoryError(result.error ?? "")).toMatchObject({
+      category: "json",
     });
   });
 
-  it("returns parse error when json root is not an object", () => {
+  it("returns parse error key when json root is not an object", () => {
     const result = parseSpec("[]", "json");
 
     expect(result).toEqual({
       data: null,
-      error: "Specification root must be an object.",
+      error: SPEC_ERROR_KEYS.rootMustBeObject,
     });
   });
 
-  it("returns parse error when yaml root is not an object", () => {
+  it("returns parse error key when yaml root is not an object", () => {
     const result = parseSpec("just a string", "yaml");
 
     expect(result).toEqual({
       data: null,
-      error: "Specification root must be an object.",
+      error: SPEC_ERROR_KEYS.rootMustBeObject,
+    });
+  });
+
+  it("returns a fallback parse error key for non-error throws", () => {
+    vi.spyOn(JSON, "parse").mockImplementation(() => {
+      throw "broken json";
+    });
+
+    const result = parseSpec("{}", "json");
+
+    expect(result).toEqual({
+      data: null,
+      error: SPEC_ERROR_KEYS.failedToParse,
     });
   });
 });
 
 describe("validateSpec", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("returns no errors for valid openapi spec", async () => {
     const errors = await validateSpec(JSON.parse(validOpenApiText));
     expect(errors).toEqual([]);
@@ -83,14 +109,14 @@ describe("validateSpec", () => {
 
   it("rejects non-object roots before running OpenAPI validation", async () => {
     await expect(validateSpec([])).resolves.toEqual([
-      "Specification root must be an object.",
+      SPEC_ERROR_KEYS.rootMustBeObject,
     ]);
     await expect(validateSpec("not-an-object")).resolves.toEqual([
-      "Specification root must be an object.",
+      SPEC_ERROR_KEYS.rootMustBeObject,
     ]);
   });
 
-  it("returns validation errors for invalid openapi spec", async () => {
+  it("returns categorized validation errors for invalid openapi spec", async () => {
     const errors = await validateSpec({
       openapi: "3.0.0",
       info: {
@@ -99,8 +125,16 @@ describe("validateSpec", () => {
       paths: {},
     });
 
-    expect(errors).toEqual([
-      expect.stringMatching(/version|required|schema|valid/i),
-    ]);
+    expect(parseCategoryError(errors[0] ?? "")).toMatchObject({
+      category: "specification",
+    });
+  });
+
+  it("returns a fallback validation error key for non-error throws", async () => {
+    vi.spyOn(SwaggerParser, "validate").mockRejectedValueOnce("invalid spec");
+
+    const errors = await validateSpec(JSON.parse(validOpenApiText));
+
+    expect(errors).toEqual([SPEC_ERROR_KEYS.invalidOpenApiDocument]);
   });
 });

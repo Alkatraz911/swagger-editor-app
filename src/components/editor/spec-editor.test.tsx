@@ -63,6 +63,14 @@ vi.mock("@/lib/openapi/convert", () => ({
 
 import { SpecEditor } from "./spec-editor";
 
+function mountMockEditor() {
+  const onMount = monacoPropsSpy.mock.calls.at(-1)?.[0]?.onMount;
+
+  act(() => {
+    onMount?.();
+  });
+}
+
 describe("SpecEditor", () => {
   beforeEach(() => {
     vi.useRealTimers();
@@ -155,6 +163,7 @@ describe("SpecEditor", () => {
     });
 
     renderWithIntl(<SpecEditor />);
+    mountMockEditor();
 
     fireEvent.click(screen.getByTestId("format-switch-button"));
 
@@ -181,6 +190,7 @@ describe("SpecEditor", () => {
     });
 
     renderWithIntl(<SpecEditor />);
+    mountMockEditor();
 
     const button = screen.getByTestId("format-switch-button");
     expect(button).toBeDisabled();
@@ -188,6 +198,29 @@ describe("SpecEditor", () => {
       "title",
       "Fix syntax issues before switching format.",
     );
+  });
+
+  it("shows a fallback conversion error when convertSpec returns no details", () => {
+    useSpecStore.setState({
+      rawText: "openapi: 3.0.3",
+      format: "yaml",
+      parsedSpec: { openapi: "3.0.3" },
+      errors: [],
+    });
+    convertSpecSpy.mockReturnValue({
+      text: null,
+      error: null,
+    });
+
+    renderWithIntl(<SpecEditor />);
+    mountMockEditor();
+
+    fireEvent.click(screen.getByTestId("format-switch-button"));
+
+    expect(useSpecStore.getState().format).toBe("yaml");
+    expect(useSpecStore.getState().errors).toEqual([
+      "Could not convert between formats: Unknown conversion error.",
+    ]);
   });
 
   it("shows conversion errors without changing the active format", () => {
@@ -203,6 +236,7 @@ describe("SpecEditor", () => {
     });
 
     renderWithIntl(<SpecEditor />);
+    mountMockEditor();
 
     fireEvent.click(screen.getByTestId("format-switch-button"));
 
@@ -223,7 +257,7 @@ describe("SpecEditor", () => {
     const initialLoader = screen.getByText("Editor").closest("[aria-hidden]");
     expect(initialLoader).toHaveAttribute("aria-hidden", "false");
 
-    onMount?.();
+    mountMockEditor();
 
     await waitFor(() => {
       const loader = screen.getByText("Editor").closest("[aria-hidden]");
@@ -399,31 +433,54 @@ describe("SpecEditor", () => {
     vi.useRealTimers();
   });
 
+  it("keeps a fixed-height toolbar before and after Monaco mounts", () => {
+    renderWithIntl(<SpecEditor />);
+
+    const toolbar = screen.getByTestId("editor-toolbar");
+    expect(toolbar).toHaveClass("h-10");
+    expect(
+      screen.queryByTestId("format-switch-button"),
+    ).not.toBeInTheDocument();
+
+    mountMockEditor();
+
+    expect(screen.getByTestId("format-switch-button")).toBeInTheDocument();
+    expect(screen.getByTestId("editor-toolbar")).toHaveClass("h-10");
+  });
+
   it("ignores stale validation results after rapid edits", async () => {
     vi.useFakeTimers();
-    parseSpecSpy
-      .mockReturnValueOnce({
-        data: null,
-        error: "Stale parse error",
-      })
-      .mockReturnValue({
-        data: {
-          openapi: "3.0.0",
-          info: { title: "Test API", version: "1.0.0" },
-          paths: {},
-        },
-        error: null,
-      });
-    validateSpecSpy.mockResolvedValue([]);
+    const validSpec = {
+      openapi: "3.0.0",
+      info: { title: "Test API", version: "1.0.0" },
+      paths: {},
+    };
+    parseSpecSpy.mockReturnValue({
+      data: validSpec,
+      error: null,
+    });
+
+    let resolveStaleValidation: (errors: string[]) => void;
+    validateSpecSpy
+      .mockImplementationOnce(
+        () =>
+          new Promise<string[]>((resolve) => {
+            resolveStaleValidation = resolve;
+          }),
+      )
+      .mockResolvedValue([]);
 
     renderWithIntl(<SpecEditor />);
 
     fireEvent.change(screen.getByTestId("monaco-mock"), {
-      target: { value: "bad input" },
+      target: {
+        value:
+          '{"openapi":"3.0.0","info":{"title":"First draft","version":"1.0.0"},"paths":{}}',
+      },
     });
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(100);
+      await vi.advanceTimersByTimeAsync(350);
     });
 
     fireEvent.change(screen.getByTestId("monaco-mock"), {
@@ -435,6 +492,11 @@ describe("SpecEditor", () => {
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(350);
+    });
+
+    await act(async () => {
+      resolveStaleValidation!(["Stale validation error"]);
+      await Promise.resolve();
     });
 
     expect(useSpecStore.getState().errors).toEqual([]);
@@ -462,9 +524,7 @@ describe("SpecEditor", () => {
       await vi.advanceTimersByTimeAsync(350);
     });
 
-    expect(useSpecStore.getState().errors).toEqual([
-      "Failed to parse specification.",
-    ]);
+    expect(useSpecStore.getState().errors).toEqual(["failedToParse"]);
 
     vi.useRealTimers();
   });
@@ -478,6 +538,7 @@ describe("SpecEditor", () => {
     });
 
     renderWithIntl(<SpecEditor />);
+    mountMockEditor();
 
     fireEvent.click(screen.getByTestId("format-switch-button"));
 

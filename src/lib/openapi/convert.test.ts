@@ -1,5 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import YAML from "yaml";
+import * as parseModule from "./parse";
 import { convertSpec } from "./convert";
+import { SPEC_ERROR_KEYS } from "./spec-errors";
 
 const jsonSpec =
   '{"openapi":"3.0.0","info":{"title":"Pets","version":"1.0.0"},"paths":{}}';
@@ -12,6 +15,10 @@ paths: {}
 `;
 
 describe("convertSpec", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("returns source text unchanged when source and target formats match", () => {
     const result = convertSpec(jsonSpec, "json", "json");
 
@@ -77,7 +84,30 @@ describe("convertSpec", () => {
 
     expect(result).toEqual({
       text: null,
-      error: "Specification root must be an object.",
+      error: SPEC_ERROR_KEYS.rootMustBeObject,
+    });
+  });
+
+  it("appends a trailing newline when yaml serialization omits one", () => {
+    vi.spyOn(YAML, "stringify").mockReturnValueOnce("openapi: 3.0.0");
+
+    const result = convertSpec(jsonSpec, "json", "yaml");
+
+    expect(result.error).toBeNull();
+    expect(result.text).toBe("openapi: 3.0.0\n");
+  });
+
+  it("returns a fallback parse error when parsing fails without a message", () => {
+    vi.spyOn(parseModule, "parseSpec").mockReturnValueOnce({
+      data: null,
+      error: null,
+    });
+
+    const result = convertSpec(jsonSpec, "json", "yaml");
+
+    expect(result).toEqual({
+      text: null,
+      error: SPEC_ERROR_KEYS.failedToParse,
     });
   });
 });
