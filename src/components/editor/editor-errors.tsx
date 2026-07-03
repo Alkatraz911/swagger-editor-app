@@ -19,8 +19,8 @@ export function EditorErrors({ errors }: EditorErrorsProps) {
     <div
       role="alert"
       className="absolute bottom-5 right-7 left-15 z-20 font-mono
-        rounded-md border border-destructive/40 text-red-700 dark:text-red-300
-        bg-destructive/10 p-3 text-sm shadow-lg bg-red-500/15"
+        rounded-md border border-destructive/40 text-red-700
+        dark:text-red-300 p-3 text-sm shadow-lg bg-red-500/15"
     >
       <p className="mb-1 font-medium">{t("editorErrorsTitle")}</p>
       <ul className="list-disc pl-5">
