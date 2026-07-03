@@ -43,7 +43,6 @@ export function FormatSwitchButton() {
 
     setRawText(conversion.text);
     setFormat(switchTargetFormat);
-    setParsedResult({ parsedSpec: null, errors: [] });
   }, [
     format,
     rawText,

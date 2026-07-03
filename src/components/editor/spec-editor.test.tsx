@@ -150,7 +150,8 @@ describe("SpecEditor", () => {
     expect(useSpecStore.getState().rawText).toBe("");
   });
 
-  it("switches format and replaces editor text when conversion succeeds", () => {
+  it("switches format and replaces editor text when conversion succeeds", async () => {
+    vi.useFakeTimers();
     useSpecStore.setState({
       rawText: "openapi: 3.0.3",
       format: "yaml",
@@ -176,7 +177,17 @@ describe("SpecEditor", () => {
     expect(useSpecStore.getState().rawText).toBe(
       '{\n  "openapi": "3.0.3"\n}\n',
     );
+    expect(useSpecStore.getState().parsedSpec).toMatchObject({
+      openapi: "3.0.3",
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+
     expect(useSpecStore.getState().errors).toEqual([]);
+
+    vi.useRealTimers();
   });
 
   it("disables the format switch button when input cannot be parsed", () => {
