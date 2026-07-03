@@ -1,8 +1,8 @@
 "use client";
 
+import { useOrientation } from "@/hooks/use-orientation";
 import type { ReactNode } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
-import { useOrientation } from "@/hooks/use-orientation";
 
 interface SplitViewProps {
   start: ReactNode;
@@ -22,8 +22,12 @@ export function SplitView({ start, end }: SplitViewProps) {
       : "h-1.5 bg-black/10 transition-colors hover:bg-black/25 dark:bg-white/10 dark:hover:bg-white/25";
 
   return (
-    <Group orientation={orientation} className="h-full w-full">
-      <Panel defaultSize="50%" minSize="20%" className="overflow-auto">
+    <Group orientation={orientation} className="flex h-full w-full flex-1">
+      <Panel
+        defaultSize="50%"
+        minSize="20%"
+        className="flex flex-col overflow-hidden"
+      >
         {start}
       </Panel>
       <Separator className={handleClass} />

@@ -1,14 +1,7 @@
-import { getTranslations } from "next-intl/server";
+import { SpecEditor } from "@/components/editor/spec-editor";
+import { Pane } from "@/components/pane";
 import { SplitView } from "@/components/split-view";
-
-function Pane({ title, hint }: { title: string; hint: string }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="max-w-xs text-sm opacity-60">{hint}</p>
-    </div>
-  );
-}
+import { getTranslations } from "next-intl/server";
 
 export default async function HomePage() {
   const t = await getTranslations("home");
@@ -16,7 +9,7 @@ export default async function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
       <SplitView
-        start={<Pane title={t("editorTitle")} hint={t("editorHint")} />}
+        start={<SpecEditor />}
         end={<Pane title={t("viewerTitle")} hint={t("viewerHint")} />}
       />
     </div>
