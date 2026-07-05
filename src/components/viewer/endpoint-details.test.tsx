@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { renderWithIntl } from "@/test/render-with-intl";
 import type { Endpoint } from "@/lib/openapi/endpoints";
 import { EndpointDetails } from "./endpoint-details";
@@ -95,39 +95,22 @@ describe("EndpointDetails", () => {
   it("renders the request body schema and example", () => {
     renderWithIntl(<EndpointDetails endpoint={endpoint} />);
     expect(screen.getByText("Request body")).toBeInTheDocument();
-    expect(screen.getAllByLabelText("Media type")[0]).toHaveValue(
-      "application/json",
-    );
+
+    const requestBodySection = screen
+      .getByText("Request body")
+      .closest("section");
+    expect(
+      within(requestBodySection as HTMLElement).getByText("Application/json"),
+    ).toBeInTheDocument();
     expect(screen.getByText(/"name": "Ada"/)).toBeInTheDocument();
   });
 
-  it("switches schema and example when another media type is selected", () => {
-    const multiMedia: Endpoint = {
-      ...endpoint,
-      requestBody: {
-        required: true,
-        content: [
-          {
-            mediaType: "application/json",
-            schema: { type: "object" },
-            example: { name: "Ada" },
-          },
-          {
-            mediaType: "application/xml",
-            schema: { type: "string" },
-            example: "<user>Grace</user>",
-          },
-        ],
-      },
-    };
-    renderWithIntl(<EndpointDetails endpoint={multiMedia} />);
-
-    const select = screen.getAllByLabelText("Media type")[0];
+  it("shows application/json as the media type label", () => {
+    renderWithIntl(<EndpointDetails endpoint={endpoint} />);
+    expect(
+      screen.getAllByText("Application/json").length,
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/"name": "Ada"/)).toBeInTheDocument();
-
-    fireEvent.change(select, { target: { value: "application/xml" } });
-    expect(screen.getByText("<user>Grace</user>")).toBeInTheDocument();
-    expect(screen.queryByText(/"name": "Ada"/)).not.toBeInTheDocument();
   });
 
   it("renders every response status code with its schema/example", () => {
@@ -199,6 +182,24 @@ describe("EndpointDetails", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
+  it("toggles try it out mode with Execute and editable request body", () => {
+    renderWithIntl(<EndpointDetails endpoint={endpoint} />);
+    expect(
+      screen.queryByRole("button", { name: "Execute" }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Try it out" }));
+    expect(screen.getByRole("button", { name: "Execute" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(
+      screen.queryByRole("button", { name: "Execute" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
   it("colors 3xx/5xx/default responses and renders a request body without content", () => {
     const minimal: Endpoint = {
       method: "put",
@@ -218,8 +219,6 @@ describe("EndpointDetails", () => {
     expect(screen.getByText("500")).toBeInTheDocument();
     expect(screen.getByText("default")).toBeInTheDocument();
     expect(screen.getByText("No example provided.")).toBeInTheDocument();
-    expect(
-      screen.getByRole("option", { name: "text/plain" }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Application/json")).toBeInTheDocument();
   });
 });

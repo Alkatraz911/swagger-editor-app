@@ -15,13 +15,16 @@ function useDemoSpec() {
     if (!DEMO_ENABLED || useSpecStore.getState().parsedSpec) return;
 
     let active = true;
-    void import("@/test/fixtures/petstore-spec").then(({ petstoreSpec }) => {
-      if (active && !useSpecStore.getState().parsedSpec) {
-        useSpecStore
-          .getState()
-          .setParsedResult({ parsedSpec: petstoreSpec, errors: [] });
-      }
-    });
+    void import("@/test/fixtures/petstore-spec.json").then(
+      ({ default: petstoreSpec }) => {
+        console.log(petstoreSpec);
+        if (active && !useSpecStore.getState().parsedSpec) {
+          useSpecStore
+            .getState()
+            .setParsedResult({ parsedSpec: petstoreSpec, errors: [] });
+        }
+      },
+    );
 
     return () => {
       active = false;

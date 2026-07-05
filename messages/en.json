@@ -117,6 +117,9 @@
     "schema": "Schema",
     "example": "Example",
     "mediaType": "Media type",
-    "noExample": "No example provided."
+    "noExample": "No example provided.",
+    "tryItOut": "Try it out",
+    "cancel": "Cancel",
+    "execute": "Execute"
   }
 }

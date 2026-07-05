@@ -1,7 +1,9 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useSpecStore } from "@/store/spec-store";
+import type { OpenApiDocument } from "@/store/spec-store";
 import type {
   Endpoint,
   EndpointParameter,
@@ -101,36 +103,27 @@ function ParameterTable({
   );
 }
 
-function MediaContent({ content }: { content: MediaTypeContent[] }) {
+function MediaContent({
+  content,
+  root,
+  editable = false,
+}: {
+  content: MediaTypeContent[];
+  root?: OpenApiDocument | null;
+  editable?: boolean;
+}) {
   const t = useTranslations("viewer");
-  const selectId = useId();
-  const [selectedType, setSelectedType] = useState(
-    () => content[0]?.mediaType ?? "",
-  );
 
   if (content.length === 0) return null;
 
-  const selected =
-    content.find((media) => media.mediaType === selectedType) ?? content[0];
+  const selected = content[0];
+  const selectedType = selected.mediaType;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
-        <label htmlFor={selectId} className="text-xs font-medium opacity-70">
-          {t("mediaType")}
-        </label>
-        <select
-          id={selectId}
-          value={selectedType}
-          onChange={(event) => setSelectedType(event.target.value)}
-          className="w-full rounded-md border border-black/10 bg-white px-2 py-1.5 font-mono text-xs dark:border-white/10 dark:bg-white/5"
-        >
-          {content.map((media) => (
-            <option key={media.mediaType} value={media.mediaType}>
-              {media.mediaType}
-            </option>
-          ))}
-        </select>
+        <p className="text-xs font-medium opacity-70">{t("mediaType")}</p>
+        <p className="text-xs font-medium opacity-100">Application/json</p>
       </div>
 
       {selected.schema ? (
@@ -139,6 +132,8 @@ function MediaContent({ content }: { content: MediaTypeContent[] }) {
           <CodeBlock
             contentKey={`${selectedType}-schema`}
             value={selected.schema}
+            root={root ?? undefined}
+            editable={editable}
           />
         </div>
       ) : null}
@@ -173,11 +168,16 @@ function statusClass(statusCode: string): string {
 /** Full description of a single operation: params, request body and responses. */
 export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
   const t = useTranslations("viewer");
+  const parsedSpec = useSpecStore((state) => state.parsedSpec);
+  const [tryItOut, setTryItOut] = useState(false);
 
   const parameterGroups = PARAM_ORDER.map((location) => ({
     location,
     params: endpoint.parameters[location],
   })).filter((group) => group.params.length > 0);
+
+  const actionButtonClass =
+    "bg-white text-black text-sm font-medium px-2 py-1 rounded-md cursor-pointer border border-black/100 dark:border-white/10 min-w-20 hover:bg-white/50 transition-colors duration-200 ease-in-out dark:hover:bg-white/50";
 
   return (
     <article className="flex flex-col gap-6">
@@ -190,8 +190,12 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
               {t("deprecated")}
             </span>
           ) : null}
-          <button className="bg-white text-black text-sm font-medium px-2 py-1 rounded-md cursor-pointer border border-black/100 dark:border-white/10 w-20 ml-auto hover:bg-white/50 transition-colors duration-200 ease-in-out dark:hover:bg-white/50">
-            Try it out
+          <button
+            type="button"
+            onClick={() => setTryItOut((active) => !active)}
+            className={`${actionButtonClass} ml-auto`}
+          >
+            {tryItOut ? t("cancel") : t("tryItOut")}
           </button>
         </div>
         {endpoint.summary ? (
@@ -201,6 +205,11 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
           <p className="text-sm opacity-70">{endpoint.description}</p>
         ) : null}
       </header>
+      {tryItOut ? (
+        <button type="button" className={actionButtonClass}>
+          {t("execute")}
+        </button>
+      ) : null}
       <Section title={t("parameters")}>
         {parameterGroups.length > 0 ? (
           parameterGroups.map((group) => (
@@ -221,6 +230,8 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
             <MediaContent
               key="request-body"
               content={endpoint.requestBody.content}
+              root={parsedSpec}
+              editable={tryItOut}
             />
           ) : (
             <p className="text-sm opacity-60">{t("noExample")}</p>
@@ -248,6 +259,7 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
                 <MediaContent
                   key={`response-${response.statusCode}`}
                   content={response.content}
+                  root={parsedSpec}
                 />
               ) : null}
             </div>

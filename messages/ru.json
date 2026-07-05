@@ -117,6 +117,9 @@
     "schema": "Схема",
     "example": "Пример",
     "mediaType": "Тип медиа",
-    "noExample": "Пример не указан."
+    "noExample": "Пример не указан.",
+    "tryItOut": "Try it out",
+    "cancel": "Cancel",
+    "execute": "Execute"
   }
 }
