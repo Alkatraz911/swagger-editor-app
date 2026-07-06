@@ -120,6 +120,17 @@
     "noExample": "No example provided.",
     "tryItOut": "Try it out",
     "cancel": "Cancel",
-    "execute": "Execute"
+    "execute": "Execute",
+    "response": "Response",
+    "responseHeaders": "Headers",
+    "responseBody": "Body",
+    "loading": "Sending request…",
+    "proxyError": "Could not send the request: {error}",
+    "noServerUrl": "No server URL defined in the specification.",
+    "duration": "Duration: {value}",
+    "generateCurl": "Generate cURL",
+    "curlCommand": "cURL command",
+    "copy": "Copy",
+    "copied": "Copied"
   }
 }

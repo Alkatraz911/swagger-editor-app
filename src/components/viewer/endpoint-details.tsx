@@ -11,8 +11,12 @@ import type {
   MediaTypeContent,
   ParameterLocation,
 } from "@/lib/openapi/endpoints";
+import { formatMediaBody } from "@/lib/openapi/format-media-body";
+import { buildProxyRequest } from "@/lib/viewer/build-proxy-request";
+import { buildCurlFromProxyRequest } from "@/lib/viewer/build-curl-command";
 import { MethodBadge } from "./method-badge";
-import { CodeBlock } from "./code-block";
+import { CodeBlock, transformValue } from "./code-block";
+import { TryItOutResponse, useTryItOut } from "./try-it-out";
 
 const PARAM_LABEL_KEY: Record<ParameterLocation, string> = {
   path: "pathParams",
@@ -134,15 +138,26 @@ function MediaContent({
   content,
   root,
   editable = false,
+  bodyEditable = false,
+  selectedMediaType: controlledMediaType,
+  onMediaTypeChange,
+  editableBodyText,
+  onEditableBodyTextChange,
 }: {
   content: MediaTypeContent[];
   root?: OpenApiDocument | null;
   editable?: boolean;
+  bodyEditable?: boolean;
+  selectedMediaType?: string;
+  onMediaTypeChange?: (mediaType: string) => void;
+  editableBodyText?: string;
+  onEditableBodyTextChange?: (text: string) => void;
 }) {
   const t = useTranslations("viewer");
-  const [selectedMediaType, setSelectedMediaType] = useState(
+  const [internalMediaType, setInternalMediaType] = useState(
     () => content[0]?.mediaType ?? "",
   );
+  const selectedMediaType = controlledMediaType ?? internalMediaType;
 
   if (content.length === 0) return null;
 
@@ -150,6 +165,18 @@ function MediaContent({
     content.find((media) => media.mediaType === selectedMediaType) ??
     content[0];
   const selectedType = selected.mediaType;
+  const schemaEditable = editable && !bodyEditable;
+  const bodySource =
+    selected.example !== undefined ? selected.example : selected.schema;
+  const canEditBody = editable && bodySource !== undefined;
+
+  function handleMediaTypeChange(nextType: string) {
+    if (onMediaTypeChange) {
+      onMediaTypeChange(nextType);
+    } else {
+      setInternalMediaType(nextType);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -159,7 +186,7 @@ function MediaContent({
           <select
             aria-label={t("mediaType")}
             value={selectedType}
-            onChange={(event) => setSelectedMediaType(event.target.value)}
+            onChange={(event) => handleMediaTypeChange(event.target.value)}
             className="w-full rounded border border-black/10 bg-white px-2 py-1 font-mono text-xs dark:border-white/10 dark:bg-black/20"
           >
             {content.map((media) => (
@@ -183,7 +210,7 @@ function MediaContent({
             value={selected.schema}
             root={root ?? undefined}
             mediaType={selectedType}
-            editable={editable}
+            editable={schemaEditable}
           />
         </div>
       ) : null}
@@ -195,7 +222,24 @@ function MediaContent({
             value={selected.example}
             root={root ?? undefined}
             mediaType={selectedType}
-            editable={editable}
+            editable={canEditBody}
+            editableValue={bodyEditable ? editableBodyText : undefined}
+            onEditableValueChange={
+              bodyEditable ? onEditableBodyTextChange : undefined
+            }
+          />
+        </div>
+      ) : bodyEditable && selected.schema ? (
+        <div key={`${selectedType}-body`}>
+          <p className="mb-1 text-xs font-medium opacity-70">{t("example")}</p>
+          <CodeBlock
+            contentKey={`${selectedType}-body`}
+            value={selected.schema}
+            root={root ?? undefined}
+            mediaType={selectedType}
+            editable={canEditBody}
+            editableValue={editableBodyText}
+            onEditableValueChange={onEditableBodyTextChange}
           />
         </div>
       ) : null}
@@ -218,12 +262,46 @@ function statusClass(statusCode: string): string {
   }
 }
 
+function getRequestBodyText(
+  endpoint: Endpoint,
+  parsedSpec: OpenApiDocument | null,
+  mediaType: string,
+): string {
+  const content = endpoint.requestBody?.content ?? [];
+  const selected =
+    content.find((media) => media.mediaType === mediaType) ?? content[0];
+  if (!selected) return "";
+
+  const source =
+    selected.example !== undefined ? selected.example : selected.schema;
+  if (source === undefined) return "";
+
+  return formatMediaBody(
+    transformValue(source, parsedSpec ?? undefined),
+    selected.mediaType,
+  );
+}
+
 /** Full description of a single operation: params, request body and responses. */
-export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
+export function EndpointDetails({
+  endpoint,
+  serverUrl,
+}: {
+  endpoint: Endpoint;
+  serverUrl: string;
+}) {
   const t = useTranslations("viewer");
   const parsedSpec = useSpecStore((state) => state.parsedSpec);
   const [tryItOut, setTryItOut] = useState(false);
   const [paramValues, setParamValues] = useState<Record<string, string>>({});
+  const [requestMediaType, setRequestMediaType] = useState(
+    () => endpoint.requestBody?.content[0]?.mediaType ?? "application/json",
+  );
+  const [requestBodyText, setRequestBodyText] = useState("");
+  const [buildErrorKey, setBuildErrorKey] = useState<string | null>(null);
+  const [curlCommand, setCurlCommand] = useState<string | null>(null);
+  const [curlCopied, setCurlCopied] = useState(false);
+  const { phase, response, clientError, execute, reset } = useTryItOut();
 
   const parameterGroups = PARAM_ORDER.map((location) => ({
     location,
@@ -233,16 +311,83 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
   const actionButtonClass =
     "bg-white text-black text-sm font-medium px-2 py-1 rounded-md cursor-pointer border border-black/100 dark:border-white/10 min-w-20 hover:bg-white/50 transition-colors duration-200 ease-in-out dark:hover:bg-white/50";
 
+  function buildCurrentProxyRequest() {
+    return buildProxyRequest({
+      endpoint,
+      serverUrl,
+      paramValues,
+      body: endpoint.requestBody ? requestBodyText : undefined,
+      contentType: endpoint.requestBody ? requestMediaType : undefined,
+    });
+  }
+
   function handleTryItOutToggle() {
     if (tryItOut) {
       setParamValues({});
+      setBuildErrorKey(null);
+      setCurlCommand(null);
+      setCurlCopied(false);
+      reset();
+    } else {
+      const mediaType =
+        endpoint.requestBody?.content[0]?.mediaType ?? "application/json";
+      setRequestMediaType(mediaType);
+      setRequestBodyText(getRequestBodyText(endpoint, parsedSpec, mediaType));
     }
     setTryItOut((active) => !active);
+  }
+
+  function handleRequestMediaTypeChange(mediaType: string) {
+    setRequestMediaType(mediaType);
+    if (tryItOut) {
+      setRequestBodyText(getRequestBodyText(endpoint, parsedSpec, mediaType));
+    }
   }
 
   function handleParamValueChange(key: string, value: string) {
     setParamValues((current) => ({ ...current, [key]: value }));
   }
+
+  async function handleExecute() {
+    setBuildErrorKey(null);
+
+    const built = buildCurrentProxyRequest();
+
+    if (!built.ok) {
+      setBuildErrorKey(built.errorKey);
+      return;
+    }
+
+    await execute(built.request);
+  }
+
+  function handleGenerateCurl() {
+    setBuildErrorKey(null);
+
+    const built = buildCurrentProxyRequest();
+    if (!built.ok) {
+      setBuildErrorKey(built.errorKey);
+      setCurlCommand(null);
+      return;
+    }
+
+    setCurlCommand(buildCurlFromProxyRequest(built.request));
+  }
+
+  async function handleCopyCurl() {
+    if (!curlCommand) return;
+
+    await navigator.clipboard.writeText(curlCommand);
+    setCurlCopied(true);
+    window.setTimeout(() => setCurlCopied(false), 1000);
+  }
+
+  const displayError =
+    buildErrorKey === "noServerUrl"
+      ? t("noServerUrl")
+      : clientError
+        ? t("proxyError", { error: clientError })
+        : null;
 
   return (
     <article className="flex flex-col gap-6">
@@ -271,9 +416,53 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
         ) : null}
       </header>
       {tryItOut ? (
-        <button type="button" className={actionButtonClass}>
-          {t("execute")}
-        </button>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleExecute}
+              disabled={phase === "loading"}
+              className={`${actionButtonClass} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              {phase === "loading" ? t("loading") : t("execute")}
+            </button>
+            <button
+              type="button"
+              onClick={handleGenerateCurl}
+              className={actionButtonClass}
+            >
+              {t("generateCurl")}
+            </button>
+          </div>
+          {curlCommand ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold">{t("curlCommand")}</h3>
+                <button
+                  type="button"
+                  onClick={handleCopyCurl}
+                  className={actionButtonClass}
+                >
+                  {curlCopied ? t("copied") : t("copy")}
+                </button>
+              </div>
+              <pre className="overflow-auto rounded bg-black/5 p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap break-all dark:bg-white/5">
+                <code>{curlCommand}</code>
+              </pre>
+            </div>
+          ) : null}
+          {displayError ? (
+            <p className="text-sm text-rose-600 dark:text-rose-400">
+              {displayError}
+            </p>
+          ) : (
+            <TryItOutResponse
+              loading={phase === "loading"}
+              response={response}
+              clientError={null}
+            />
+          )}
+        </div>
       ) : null}
       <Section title={t("parameters")}>
         {parameterGroups.length > 0 ? (
@@ -300,6 +489,11 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
               content={endpoint.requestBody.content}
               root={parsedSpec}
               editable={tryItOut}
+              bodyEditable={tryItOut}
+              selectedMediaType={requestMediaType}
+              onMediaTypeChange={handleRequestMediaTypeChange}
+              editableBodyText={requestBodyText}
+              onEditableBodyTextChange={setRequestBodyText}
             />
           ) : (
             <p className="text-sm opacity-60">{t("noExample")}</p>
