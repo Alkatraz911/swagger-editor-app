@@ -10,9 +10,23 @@
     "about": "About",
     "copyright": "© 2026 Swagger Editor — RS School"
   },
+  "openapi": {
+    "errors": {
+      "rootMustBeObject": "Specification root must be an object.",
+      "failedToParse": "Failed to parse specification.",
+      "invalidOpenApiDocument": "Specification is not a valid OpenAPI document.",
+      "json": "JSON syntax error",
+      "yaml": "YAML syntax error",
+      "specification": "Invalid OpenAPI specification"
+    }
+  },
   "home": {
     "editorTitle": "Editor",
     "editorHint": "Paste or write your OpenAPI / Swagger specification here.",
+    "editorErrorsTitle": "Validation error!",
+    "editorSwitchToFormat": "Switch to {format}",
+    "editorSwitchDisabledHint": "Fix syntax issues before switching format.",
+    "editorSwitchFailed": "Could not convert between formats: {error}",
     "viewerTitle": "Viewer",
     "viewerHint": "Endpoints will appear here once the specification is valid."
   },

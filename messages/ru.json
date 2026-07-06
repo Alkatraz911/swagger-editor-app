@@ -10,9 +10,23 @@
     "about": "О проекте",
     "copyright": "© 2026 Swagger Editor — RS School"
   },
+  "openapi": {
+    "errors": {
+      "rootMustBeObject": "Корень спецификации должен быть объектом.",
+      "failedToParse": "Не удалось разобрать спецификацию.",
+      "invalidOpenApiDocument": "Спецификация не является корректным документом OpenAPI.",
+      "json": "Ошибка синтаксиса JSON",
+      "yaml": "Ошибка синтаксиса YAML",
+      "specification": "Спецификация OpenAPI невалидна"
+    }
+  },
   "home": {
     "editorTitle": "Редактор",
     "editorHint": "Вставьте или напишите здесь спецификацию OpenAPI / Swagger.",
+    "editorErrorsTitle": "Ошибка валидации!",
+    "editorSwitchToFormat": "Переключить на {format}",
+    "editorSwitchDisabledHint": "Исправьте синтаксические ошибки перед сменой формата.",
+    "editorSwitchFailed": "Не удалось конвертировать формат: {error}",
     "viewerTitle": "Просмотрщик",
     "viewerHint": "Эндпоинты появятся здесь, как только спецификация станет валидной."
   },
