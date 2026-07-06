@@ -27,6 +27,9 @@
     "editorSwitchToFormat": "Switch to {format}",
     "editorSwitchDisabledHint": "Fix syntax issues before switching format.",
     "editorSwitchFailed": "Could not convert between formats: {error}",
+    "editorSave": "Save",
+    "editorSaveSuccess": "Schema saved.",
+    "editorSaveFailed": "Could not save schema. Please try again.",
     "viewerTitle": "Viewer",
     "viewerHint": "Endpoints will appear here once the specification is valid."
   },

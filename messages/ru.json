@@ -27,6 +27,9 @@
     "editorSwitchToFormat": "Переключить на {format}",
     "editorSwitchDisabledHint": "Исправьте синтаксические ошибки перед сменой формата.",
     "editorSwitchFailed": "Не удалось конвертировать формат: {error}",
+    "editorSave": "Сохранить",
+    "editorSaveSuccess": "Спецификация сохранена.",
+    "editorSaveFailed": "Не удалось сохранить спецификацию. Попробуйте ещё раз.",
     "viewerTitle": "Просмотрщик",
     "viewerHint": "Эндпоинты появятся здесь, как только спецификация станет валидной."
   },
