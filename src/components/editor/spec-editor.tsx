@@ -278,18 +278,30 @@ export function SpecEditor({
   savedSchema = null,
 }: SpecEditorProps) {
   const didHydrate = useRef(false);
+  const previousUserId = useRef<string | null>(userId);
 
   useLayoutEffect(() => {
-    if (!savedSchema || didHydrate.current) {
-      return;
+    const previousId = previousUserId.current;
+    const userChanged = previousId !== userId;
+
+    if (userChanged) {
+      didHydrate.current = false;
+
+      if (previousId && previousId !== userId) {
+        useSpecStore.getState().reset();
+      }
     }
 
-    didHydrate.current = true;
-    useSpecStore.setState({
-      rawText: savedSchema.content,
-      format: savedSchema.format,
-    });
-  }, [savedSchema]);
+    if (userId && savedSchema && !didHydrate.current) {
+      didHydrate.current = true;
+      useSpecStore.setState({
+        rawText: savedSchema.content,
+        format: savedSchema.format,
+      });
+    }
+
+    previousUserId.current = userId;
+  }, [savedSchema, userId]);
 
   return (
     <section className="relative flex min-h-0 flex-1 flex-col pl-4">

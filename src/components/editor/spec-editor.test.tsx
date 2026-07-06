@@ -472,6 +472,27 @@ describe("SpecEditor", () => {
     expect(useSpecStore.getState().format).toBe("yaml");
   });
 
+  it("resets hydrated schema state when the user logs out", () => {
+    const { rerenderWithLocale } = renderWithIntl(
+      <SpecEditor
+        userId="u1"
+        savedSchema={{ content: "openapi: 3.0.3", format: "yaml" }}
+      />,
+    );
+
+    useSpecStore.setState({
+      parsedSpec: { openapi: "3.0.3" },
+      errors: ["stale error"],
+    });
+
+    rerenderWithLocale(<SpecEditor userId={null} savedSchema={null} />);
+
+    expect(useSpecStore.getState().rawText).toBe("");
+    expect(useSpecStore.getState().format).toBe("yaml");
+    expect(useSpecStore.getState().parsedSpec).toBeNull();
+    expect(useSpecStore.getState().errors).toEqual([]);
+  });
+
   it("shows the save button only for signed-in users after Monaco mounts", () => {
     renderWithIntl(<SpecEditor userId="u1" />);
     mountMockEditor();
