@@ -28,6 +28,13 @@ const PARAM_ORDER: readonly ParameterLocation[] = [
   "cookie",
 ];
 
+function parameterKey(param: EndpointParameter): string {
+  return `${param.location}:${param.name}`;
+}
+
+const paramInputClass =
+  "mt-2 w-full rounded border border-black/10 bg-white px-2 py-1 font-mono text-sm dark:border-white/10 dark:bg-black/20";
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -67,9 +74,15 @@ function Section({
 function ParameterTable({
   title,
   parameters,
+  editable = false,
+  values,
+  onValueChange,
 }: {
   title: string;
   parameters: EndpointParameter[];
+  editable?: boolean;
+  values?: Record<string, string>;
+  onValueChange?: (key: string, value: string) => void;
 }) {
   const t = useTranslations("viewer");
 
@@ -77,27 +90,41 @@ function ParameterTable({
     <div className="flex flex-col gap-1">
       <h4 className="text-xs font-medium opacity-70">{title}</h4>
       <ul className="flex flex-col gap-1">
-        {parameters.map((param) => (
-          <li
-            key={param.name}
-            className="rounded border border-black/10 p-2 text-sm dark:border-white/10 bg-white"
-          >
-            <div className="flex flex-wrap items-baseline gap-2">
-              <span className="font-mono font-medium">{param.name}</span>
-              <span className="text-xs opacity-60">
-                {schemaTypeLabel(param.schema)}
-              </span>
-              <span
-                className={`text-xs ${param.required ? "text-rose-600 dark:text-rose-400" : "opacity-50"}`}
-              >
-                {param.required ? t("required") : t("optional")}
-              </span>
-            </div>
-            {param.description ? (
-              <p className="mt-1 text-xs opacity-70">{param.description}</p>
-            ) : null}
-          </li>
-        ))}
+        {parameters.map((param) => {
+          const key = parameterKey(param);
+
+          return (
+            <li
+              key={key}
+              className="rounded border border-black/10 bg-white p-2 text-sm dark:border-white/10"
+            >
+              <div className="flex flex-wrap items-baseline gap-2">
+                <span className="font-mono font-medium">{param.name}</span>
+                <span className="text-xs opacity-60">
+                  {schemaTypeLabel(param.schema)}
+                </span>
+                <span
+                  className={`text-xs ${param.required ? "text-rose-600 dark:text-rose-400" : "opacity-50"}`}
+                >
+                  {param.required ? t("required") : t("optional")}
+                </span>
+              </div>
+              {param.description ? (
+                <p className="mt-1 text-xs opacity-70">{param.description}</p>
+              ) : null}
+              {editable ? (
+                <input
+                  type="text"
+                  aria-label={param.name}
+                  value={values?.[key] ?? ""}
+                  onChange={(event) => onValueChange?.(key, event.target.value)}
+                  className={paramInputClass}
+                  placeholder={param.name}
+                />
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -170,6 +197,7 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
   const t = useTranslations("viewer");
   const parsedSpec = useSpecStore((state) => state.parsedSpec);
   const [tryItOut, setTryItOut] = useState(false);
+  const [paramValues, setParamValues] = useState<Record<string, string>>({});
 
   const parameterGroups = PARAM_ORDER.map((location) => ({
     location,
@@ -178,6 +206,17 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
 
   const actionButtonClass =
     "bg-white text-black text-sm font-medium px-2 py-1 rounded-md cursor-pointer border border-black/100 dark:border-white/10 min-w-20 hover:bg-white/50 transition-colors duration-200 ease-in-out dark:hover:bg-white/50";
+
+  function handleTryItOutToggle() {
+    if (tryItOut) {
+      setParamValues({});
+    }
+    setTryItOut((active) => !active);
+  }
+
+  function handleParamValueChange(key: string, value: string) {
+    setParamValues((current) => ({ ...current, [key]: value }));
+  }
 
   return (
     <article className="flex flex-col gap-6">
@@ -192,7 +231,7 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
           ) : null}
           <button
             type="button"
-            onClick={() => setTryItOut((active) => !active)}
+            onClick={handleTryItOutToggle}
             className={`${actionButtonClass} ml-auto`}
           >
             {tryItOut ? t("cancel") : t("tryItOut")}
@@ -217,6 +256,9 @@ export function EndpointDetails({ endpoint }: { endpoint: Endpoint }) {
               key={group.location}
               title={t(PARAM_LABEL_KEY[group.location])}
               parameters={group.params}
+              editable={tryItOut}
+              values={paramValues}
+              onValueChange={handleParamValueChange}
             />
           ))
         ) : (

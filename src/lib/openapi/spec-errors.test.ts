@@ -62,7 +62,7 @@ describe("translateSpecError", () => {
         tRu,
       ),
     ).toBe(
-      "Ошибка JSON: Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+      "Ошибка синтаксиса JSON: Expected property name or '}' in JSON at position 1 (line 1 column 2)",
     );
   });
 
@@ -77,7 +77,9 @@ describe("translateSpecError", () => {
         }),
         tRu,
       ),
-    ).toBe("Ошибка YAML: Flow map must end with a } at line 1, column 5");
+    ).toBe(
+      "Ошибка синтаксиса YAML: Flow map must end with a } at line 1, column 5",
+    );
   });
 
   it("wraps specification errors with a translated category label", () => {
@@ -91,7 +93,9 @@ describe("translateSpecError", () => {
         }),
         tRu,
       ),
-    ).toBe("Ошибка спецификации: must have required property 'version'");
+    ).toBe(
+      "Спецификация OpenAPI невалидна: must have required property 'version'",
+    );
   });
 
   it("returns the original message when no category prefix is present", () => {
@@ -113,6 +117,6 @@ describe("translateSpecError", () => {
         }),
         tEn,
       ),
-    ).toBe("JSON error: Unexpected end of JSON input");
+    ).toBe("JSON syntax error: Unexpected end of JSON input");
   });
 });

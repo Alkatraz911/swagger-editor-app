@@ -191,13 +191,32 @@ describe("EndpointDetails", () => {
     fireEvent.click(screen.getByRole("button", { name: "Try it out" }));
     expect(screen.getByRole("button", { name: "Execute" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
-    expect(screen.getByRole("textbox")).toBeInTheDocument();
+    expect(screen.getAllByRole("textbox").length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(
       screen.queryByRole("button", { name: "Execute" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
+  it("shows parameter inputs in try it out mode and hides them on cancel", () => {
+    renderWithIntl(<EndpointDetails endpoint={endpoint} />);
+    expect(screen.queryByLabelText("id")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Try it out" }));
+
+    const idInput = screen.getByLabelText("id");
+    const verboseInput = screen.getByLabelText("verbose");
+    expect(idInput).toBeInTheDocument();
+    expect(verboseInput).toBeInTheDocument();
+
+    fireEvent.change(idInput, { target: { value: "42" } });
+    expect(idInput).toHaveValue("42");
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByLabelText("id")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("verbose")).not.toBeInTheDocument();
   });
 
   it("colors 3xx/5xx/default responses and renders a request body without content", () => {

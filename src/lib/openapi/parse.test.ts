@@ -1,11 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import { parseSpec, validateSpec } from "./parse";
-import {
-  createCategoryError,
-  parseCategoryError,
-  SPEC_ERROR_KEYS,
-} from "./spec-errors";
+import { parseCategoryError, SPEC_ERROR_KEYS } from "./spec-errors";
 
 const validOpenApiText = JSON.stringify({
   openapi: "3.0.0",
