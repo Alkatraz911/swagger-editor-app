@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatMediaBody } from "@/lib/openapi/format-media-body";
 
 /** Render an arbitrary value (schema or example) as readable, scrollable JSON. */
 
@@ -192,6 +193,7 @@ export function CodeBlock({
   value,
   contentKey,
   root,
+  mediaType,
   editable = false,
 }: {
   value: unknown;
@@ -199,10 +201,15 @@ export function CodeBlock({
   contentKey?: string;
   /** Root OpenAPI document — required to resolve local `$ref`s when building examples. */
   root?: Record<string, unknown>;
+  /** When set, serializes the value as JSON, XML or form-urlencoded. */
+  mediaType?: string;
   /** When true, the user can edit the rendered JSON text. */
   editable?: boolean;
 }) {
-  const readOnlyText = stringify(transformValue(value, root));
+  const readOnlyText = formatMediaBody(
+    transformValue(value, root),
+    mediaType ?? "application/json",
+  );
 
   if (editable) {
     return (
@@ -219,13 +226,4 @@ export function CodeBlock({
       <code>{readOnlyText}</code>
     </pre>
   );
-}
-
-function stringify(value: unknown): string {
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
 }

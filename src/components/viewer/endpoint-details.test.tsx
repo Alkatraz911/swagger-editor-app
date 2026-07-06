@@ -100,17 +100,116 @@ describe("EndpointDetails", () => {
       .getByText("Request body")
       .closest("section");
     expect(
-      within(requestBodySection as HTMLElement).getByText("Application/json"),
+      within(requestBodySection as HTMLElement).getByText("application/json"),
     ).toBeInTheDocument();
     expect(screen.getByText(/"name": "Ada"/)).toBeInTheDocument();
   });
 
-  it("shows application/json as the media type label", () => {
+  it("shows the media type from the spec", () => {
     renderWithIntl(<EndpointDetails endpoint={endpoint} />);
     expect(
-      screen.getAllByText("Application/json").length,
+      screen.getAllByText("application/json").length,
     ).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/"name": "Ada"/)).toBeInTheDocument();
+  });
+
+  it("lets the user switch media types when several are defined", () => {
+    const multiMedia: Endpoint = {
+      ...endpoint,
+      requestBody: {
+        required: true,
+        content: [
+          {
+            mediaType: "application/json",
+            schema: { type: "object" },
+            example: { id: "1" },
+          },
+          {
+            mediaType: "text/plain",
+            schema: { type: "string" },
+            example: "plain",
+          },
+        ],
+      },
+    };
+    renderWithIntl(<EndpointDetails endpoint={multiMedia} />);
+
+    const requestBodySection = screen
+      .getByText("Request body")
+      .closest("section") as HTMLElement;
+    const mediaTypeSelect =
+      within(requestBodySection).getByLabelText("Media type");
+
+    expect(
+      within(requestBodySection).getByText(/"id": "1"/),
+    ).toBeInTheDocument();
+    fireEvent.change(mediaTypeSelect, {
+      target: { value: "text/plain" },
+    });
+    expect(within(requestBodySection).getByText("plain")).toBeInTheDocument();
+    expect(
+      within(requestBodySection).queryByText(/"id": "1"/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("formats schema and example according to the selected media type", () => {
+    const multiFormat: Endpoint = {
+      ...endpoint,
+      requestBody: {
+        required: true,
+        content: [
+          {
+            mediaType: "application/json",
+            schema: {
+              type: "object",
+              properties: { name: { type: "string", example: "Ada" } },
+            },
+            example: { name: "Ada" },
+          },
+          {
+            mediaType: "application/xml",
+            schema: {
+              type: "object",
+              properties: { name: { type: "string", example: "Ada" } },
+            },
+            example: { name: "Ada" },
+          },
+          {
+            mediaType: "application/x-www-form-urlencoded",
+            schema: {
+              type: "object",
+              properties: { name: { type: "string", example: "Ada" } },
+            },
+            example: { name: "Ada" },
+          },
+        ],
+      },
+    };
+    renderWithIntl(<EndpointDetails endpoint={multiFormat} />);
+
+    const requestBodySection = screen
+      .getByText("Request body")
+      .closest("section") as HTMLElement;
+    const mediaTypeSelect =
+      within(requestBodySection).getByLabelText("Media type");
+
+    expect(
+      within(requestBodySection).getAllByText(/"name": "Ada"/).length,
+    ).toBeGreaterThanOrEqual(1);
+
+    fireEvent.change(mediaTypeSelect, {
+      target: { value: "application/xml" },
+    });
+    expect(
+      within(requestBodySection).getAllByText(/<name>Ada<\/name>/).length,
+    ).toBeGreaterThanOrEqual(1);
+
+    fireEvent.change(mediaTypeSelect, {
+      target: { value: "application/x-www-form-urlencoded" },
+    });
+    expect(
+      within(requestBodySection).getAllByText("name=Ada").length,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   it("renders every response status code with its schema/example", () => {
@@ -238,6 +337,6 @@ describe("EndpointDetails", () => {
     expect(screen.getByText("500")).toBeInTheDocument();
     expect(screen.getByText("default")).toBeInTheDocument();
     expect(screen.getByText("No example provided.")).toBeInTheDocument();
-    expect(screen.getByText("Application/json")).toBeInTheDocument();
+    expect(screen.getByText("text/plain")).toBeInTheDocument();
   });
 });

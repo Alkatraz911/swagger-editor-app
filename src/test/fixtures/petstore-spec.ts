@@ -1,11 +1,7 @@
 import type { OpenApiDocument } from "@/store/spec-store";
 
 /**
- * Swagger Petstore sample spec as a ready-to-use parsed object.
- *
- * Used as a demo fixture for the Viewer. Enable it in the browser by setting
- * `NEXT_PUBLIC_VIEWER_DEMO=true` in `.env.local` (see SpecViewer). It is also
- * handy in tests:
+ * Swagger Petstore sample spec as a ready-to-use parsed object for tests:
  *
  *   import { petstoreSpec } from "@/test/fixtures/petstore-spec";
  *   useSpecStore.getState().setParsedResult({ parsedSpec: petstoreSpec, errors: [] });

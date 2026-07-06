@@ -1,36 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSpecStore } from "@/store/spec-store";
 import { getEndpoints } from "@/lib/openapi/endpoints";
 import { EndpointList, ServerName } from "./endpoint-list";
-
-/** Dev-only flag: preload a sample spec so the Viewer can be checked in-browser. */
-const DEMO_ENABLED = process.env.NEXT_PUBLIC_VIEWER_DEMO === "true";
-
-/** When the demo flag is on and the store is empty, load the Petstore fixture. */
-function useDemoSpec() {
-  useEffect(() => {
-    if (!DEMO_ENABLED || useSpecStore.getState().parsedSpec) return;
-
-    let active = true;
-    void import("@/test/fixtures/petstore-spec.json").then(
-      ({ default: petstoreSpec }) => {
-        console.log(petstoreSpec);
-        if (active && !useSpecStore.getState().parsedSpec) {
-          useSpecStore
-            .getState()
-            .setParsedResult({ parsedSpec: petstoreSpec, errors: [] });
-        }
-      },
-    );
-
-    return () => {
-      active = false;
-    };
-  }, []);
-}
 
 function CenteredMessage({ title, hint }: { title: string; hint?: string }) {
   return (
@@ -50,8 +24,6 @@ export function SpecViewer() {
   const parsedSpec = useSpecStore((state) => state.parsedSpec);
   const errors = useSpecStore((state) => state.errors);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  useDemoSpec();
 
   const endpoints = useMemo(() => getEndpoints(parsedSpec), [parsedSpec]);
 

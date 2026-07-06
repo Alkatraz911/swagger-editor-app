@@ -138,4 +138,19 @@ describe("CodeBlock", () => {
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.getByText(/"a": 1/)).toBeInTheDocument();
   });
+
+  it("renders XML when mediaType is application/xml", () => {
+    render(<CodeBlock value={{ name: "Ada" }} mediaType="application/xml" />);
+    expect(screen.getByText(/<name>Ada<\/name>/)).toBeInTheDocument();
+  });
+
+  it("renders form-urlencoded when mediaType is application/x-www-form-urlencoded", () => {
+    render(
+      <CodeBlock
+        value={{ name: "Ada", active: true }}
+        mediaType="application/x-www-form-urlencoded"
+      />,
+    );
+    expect(screen.getByText("name=Ada&active=true")).toBeInTheDocument();
+  });
 });

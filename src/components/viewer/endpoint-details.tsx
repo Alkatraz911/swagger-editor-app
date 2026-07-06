@@ -140,17 +140,39 @@ function MediaContent({
   editable?: boolean;
 }) {
   const t = useTranslations("viewer");
+  const [selectedMediaType, setSelectedMediaType] = useState(
+    () => content[0]?.mediaType ?? "",
+  );
 
   if (content.length === 0) return null;
 
-  const selected = content[0];
+  const selected =
+    content.find((media) => media.mediaType === selectedMediaType) ??
+    content[0];
   const selectedType = selected.mediaType;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
         <p className="text-xs font-medium opacity-70">{t("mediaType")}</p>
-        <p className="text-xs font-medium opacity-100">Application/json</p>
+        {content.length > 1 ? (
+          <select
+            aria-label={t("mediaType")}
+            value={selectedType}
+            onChange={(event) => setSelectedMediaType(event.target.value)}
+            className="w-full rounded border border-black/10 bg-white px-2 py-1 font-mono text-xs dark:border-white/10 dark:bg-black/20"
+          >
+            {content.map((media) => (
+              <option key={media.mediaType} value={media.mediaType}>
+                {media.mediaType}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <p className="font-mono text-xs font-medium opacity-100">
+            {selectedType}
+          </p>
+        )}
       </div>
 
       {selected.schema ? (
@@ -160,6 +182,7 @@ function MediaContent({
             contentKey={`${selectedType}-schema`}
             value={selected.schema}
             root={root ?? undefined}
+            mediaType={selectedType}
             editable={editable}
           />
         </div>
@@ -170,6 +193,9 @@ function MediaContent({
           <CodeBlock
             contentKey={`${selectedType}-example`}
             value={selected.example}
+            root={root ?? undefined}
+            mediaType={selectedType}
+            editable={editable}
           />
         </div>
       ) : null}
