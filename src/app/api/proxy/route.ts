@@ -30,17 +30,27 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
 
   if (user) {
-    await supabase.from("requests").insert({
-      user_id: user.id,
-      method: proxyRequest.method.toUpperCase(),
-      url: targetUrl,
-      endpoint_path: endpointPath,
-      status_code: response.status > 0 ? response.status : null,
-      duration_ms: response.durationMs,
-      request_size: response.requestSize,
-      response_size: response.responseSize,
-      error_detail: errorDetail,
-    });
+    try {
+      const { error } = await supabase.from("requests").insert({
+        user_id: user.id,
+        method: proxyRequest.method.toUpperCase(),
+        url: targetUrl,
+        endpoint_path: endpointPath,
+        status_code: response.status > 0 ? response.status : null,
+        duration_ms: response.durationMs,
+        request_size: response.requestSize,
+        response_size: response.responseSize,
+        error_detail: errorDetail,
+      });
+
+      if (error) {
+        throw new Error(`Failed to log proxy request: ${error.message}`);
+      }
+    } catch (error) {
+      throw new Error(
+        `Failed to log proxy request: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   return NextResponse.json(response);
