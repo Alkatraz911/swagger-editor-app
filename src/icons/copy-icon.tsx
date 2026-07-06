@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 export function CopyIcon({ text }: { text: string }) {
   const [isCopied, setIsCopied] = useState(false);
-  const handleCopy = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleCopy = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     e.preventDefault();
     setIsCopied(true);

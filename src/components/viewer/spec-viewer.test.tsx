@@ -75,4 +75,44 @@ describe("SpecViewer", () => {
       screen.getByText("The specification has no endpoints."),
     ).toBeInTheDocument();
   });
+
+  it("renders title, description, and servers from the parsed spec", () => {
+    const specWithMetadata: OpenApiDocument = {
+      openapi: "3.0.0",
+      info: {
+        title: "User Service API",
+        description: "API for managing users in the system.",
+        version: "1.0.0",
+      },
+      servers: [
+        { url: "https://api.example.com", description: "Production" },
+        { url: "https://staging-api.example.com", description: "Staging" },
+      ],
+      paths: {
+        "/users": {
+          get: {
+            summary: "List users",
+            responses: { "200": { description: "OK" } },
+          },
+        },
+      },
+    };
+
+    useSpecStore.getState().setParsedResult({
+      parsedSpec: specWithMetadata,
+      errors: [],
+    });
+    renderWithIntl(<SpecViewer />);
+
+    expect(screen.getByText("User Service API")).toBeInTheDocument();
+    expect(
+      screen.getByText("API for managing users in the system."),
+    ).toBeInTheDocument();
+
+    const serverSelect = screen.getByRole("combobox", { name: "Servers:" });
+    expect(serverSelect).toHaveDisplayValue("https://api.example.com");
+    expect(
+      screen.getByText("https://staging-api.example.com"),
+    ).toBeInTheDocument();
+  });
 });
