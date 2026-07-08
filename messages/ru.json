@@ -120,6 +120,17 @@
     "noExample": "Пример не указан.",
     "tryItOut": "Попробовать",
     "cancel": "Отмена",
-    "execute": "Выполнить"
+    "execute": "Выполнить",
+    "response": "Ответ",
+    "responseHeaders": "Заголовки",
+    "responseBody": "Тело",
+    "loading": "Отправка запроса…",
+    "proxyError": "Не удалось отправить запрос: {error}",
+    "noServerUrl": "В спецификации не указан URL сервера.",
+    "duration": "Длительность: {value}",
+    "generateCurl": "Сгенерировать cURL",
+    "curlCommand": "Команда cURL",
+    "copy": "Копировать",
+    "copied": "Скопировано"
   }
 }

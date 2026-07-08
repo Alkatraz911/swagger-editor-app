@@ -172,17 +172,30 @@ const BLOCK_CLASS =
 function EditableCodeBlock({
   contentKey,
   initialText,
+  editableValue,
+  onEditableValueChange,
 }: {
   contentKey?: string;
   initialText: string;
+  editableValue?: string;
+  onEditableValueChange?: (value: string) => void;
 }) {
   const [draft, setDraft] = useState(initialText);
+  const isControlled =
+    editableValue !== undefined && onEditableValueChange !== undefined;
+  const text = isControlled ? editableValue : draft;
 
   return (
     <textarea
       key={contentKey}
-      value={draft}
-      onChange={(event) => setDraft(event.target.value)}
+      value={text}
+      onChange={(event) => {
+        if (isControlled) {
+          onEditableValueChange(event.target.value);
+        } else {
+          setDraft(event.target.value);
+        }
+      }}
       className={`${BLOCK_CLASS} resize-y border border-black/10 bg-white dark:border-white/10 dark:bg-white/5`}
       spellCheck={false}
     />
@@ -195,6 +208,8 @@ export function CodeBlock({
   root,
   mediaType,
   editable = false,
+  editableValue,
+  onEditableValueChange,
 }: {
   value: unknown;
   /** Forces a fresh render when the surrounding context changes (e.g. media type). */
@@ -205,6 +220,8 @@ export function CodeBlock({
   mediaType?: string;
   /** When true, the user can edit the rendered JSON text. */
   editable?: boolean;
+  editableValue?: string;
+  onEditableValueChange?: (value: string) => void;
 }) {
   const readOnlyText = formatMediaBody(
     transformValue(value, root),
@@ -217,6 +234,8 @@ export function CodeBlock({
         key={`${contentKey ?? "block"}-${readOnlyText}`}
         contentKey={contentKey}
         initialText={readOnlyText}
+        editableValue={editableValue}
+        onEditableValueChange={onEditableValueChange}
       />
     );
   }

@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { fireEvent, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { renderWithIntl } from "@/test/render-with-intl";
 import type { Endpoint } from "@/lib/openapi/endpoints";
 import { EndpointDetails } from "./endpoint-details";
@@ -71,9 +71,17 @@ const endpoint: Endpoint = {
   ],
 };
 
+const SERVER_URL = "https://api.example.com";
+
+function renderDetails(endpointOverride: Endpoint = endpoint) {
+  return renderWithIntl(
+    <EndpointDetails endpoint={endpointOverride} serverUrl={SERVER_URL} />,
+  );
+}
+
 describe("EndpointDetails", () => {
   it("shows the method, path and deprecated flag", () => {
-    renderWithIntl(<EndpointDetails endpoint={endpoint} />);
+    renderDetails();
     expect(screen.getByText("post")).toBeInTheDocument();
     expect(screen.getByText("/users/{id}")).toBeInTheDocument();
     expect(screen.getByText("Deprecated")).toBeInTheDocument();
@@ -81,7 +89,7 @@ describe("EndpointDetails", () => {
   });
 
   it("lists parameters of every location", () => {
-    renderWithIntl(<EndpointDetails endpoint={endpoint} />);
+    renderDetails();
     expect(screen.getByText("Path parameters")).toBeInTheDocument();
     expect(screen.getByText("Query parameters")).toBeInTheDocument();
     expect(screen.getByText("Header parameters")).toBeInTheDocument();
@@ -93,7 +101,7 @@ describe("EndpointDetails", () => {
   });
 
   it("renders the request body schema and example", () => {
-    renderWithIntl(<EndpointDetails endpoint={endpoint} />);
+    renderDetails();
     expect(screen.getByText("Request body")).toBeInTheDocument();
 
     const requestBodySection = screen
@@ -106,7 +114,7 @@ describe("EndpointDetails", () => {
   });
 
   it("shows the media type from the spec", () => {
-    renderWithIntl(<EndpointDetails endpoint={endpoint} />);
+    renderDetails();
     expect(
       screen.getAllByText("application/json").length,
     ).toBeGreaterThanOrEqual(1);
@@ -132,7 +140,7 @@ describe("EndpointDetails", () => {
         ],
       },
     };
-    renderWithIntl(<EndpointDetails endpoint={multiMedia} />);
+    renderDetails(multiMedia);
 
     const requestBodySection = screen
       .getByText("Request body")
@@ -185,7 +193,7 @@ describe("EndpointDetails", () => {
         ],
       },
     };
-    renderWithIntl(<EndpointDetails endpoint={multiFormat} />);
+    renderDetails(multiFormat);
 
     const requestBodySection = screen
       .getByText("Request body")
@@ -213,7 +221,7 @@ describe("EndpointDetails", () => {
   });
 
   it("renders every response status code with its schema/example", () => {
-    renderWithIntl(<EndpointDetails endpoint={endpoint} />);
+    renderDetails();
     expect(screen.getByText("200")).toBeInTheDocument();
     expect(screen.getByText("404")).toBeInTheDocument();
     expect(screen.getByText("Not found")).toBeInTheDocument();
@@ -225,7 +233,7 @@ describe("EndpointDetails", () => {
       ...endpoint,
       parameters: { path: [], query: [], header: [], cookie: [] },
     };
-    renderWithIntl(<EndpointDetails endpoint={noParams} />);
+    renderDetails(noParams);
     expect(
       screen.getByText("This operation has no parameters."),
     ).toBeInTheDocument();
@@ -273,7 +281,7 @@ describe("EndpointDetails", () => {
       requestBody: null,
       responses: [],
     };
-    renderWithIntl(<EndpointDetails endpoint={variants} />);
+    renderDetails(variants);
     expect(screen.getByText("string[]")).toBeInTheDocument();
     expect(screen.getByText("array")).toBeInTheDocument();
     expect(screen.getByText("string | null")).toBeInTheDocument();
@@ -282,7 +290,7 @@ describe("EndpointDetails", () => {
   });
 
   it("toggles try it out mode with Execute and editable request body", () => {
-    renderWithIntl(<EndpointDetails endpoint={endpoint} />);
+    renderDetails();
     expect(
       screen.queryByRole("button", { name: "Execute" }),
     ).not.toBeInTheDocument();
@@ -300,7 +308,7 @@ describe("EndpointDetails", () => {
   });
 
   it("shows parameter inputs in try it out mode and hides them on cancel", () => {
-    renderWithIntl(<EndpointDetails endpoint={endpoint} />);
+    renderDetails();
     expect(screen.queryByLabelText("id")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Try it out" }));
@@ -332,11 +340,87 @@ describe("EndpointDetails", () => {
         { statusCode: "default", content: [{ mediaType: "text/plain" }] },
       ],
     };
-    renderWithIntl(<EndpointDetails endpoint={minimal} />);
+    renderDetails(minimal);
     expect(screen.getByText("301")).toBeInTheDocument();
     expect(screen.getByText("500")).toBeInTheDocument();
     expect(screen.getByText("default")).toBeInTheDocument();
     expect(screen.getByText("No example provided.")).toBeInTheDocument();
     expect(screen.getByText("text/plain")).toBeInTheDocument();
+  });
+
+  it("executes a request and renders a 404 response in the panel", async () => {
+    const originalFetch = global.fetch;
+    global.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          status: 404,
+          statusText: "Not Found",
+          headers: { "content-type": "application/json" },
+          body: '{"message":"missing"}',
+          durationMs: 80,
+          requestSize: 12,
+          responseSize: 20,
+        }),
+        { status: 200 },
+      ),
+    );
+
+    renderDetails();
+    fireEvent.click(screen.getByRole("button", { name: "Try it out" }));
+    fireEvent.change(screen.getByLabelText("id"), { target: { value: "7" } });
+    fireEvent.click(screen.getByRole("button", { name: "Execute" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("404 Not Found")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/"message": "missing"/)).toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/proxy",
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining(
+          '"url":"https://api.example.com/users/7"',
+        ),
+      }),
+    );
+
+    global.fetch = originalFetch;
+  });
+
+  it("generates a cURL command from the current try-it-out values", () => {
+    renderDetails();
+    fireEvent.click(screen.getByRole("button", { name: "Try it out" }));
+    fireEvent.change(screen.getByLabelText("id"), { target: { value: "7" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate cURL" }));
+
+    expect(screen.getByText("cURL command")).toBeInTheDocument();
+    expect(
+      screen.getByText(/curl -X POST 'https:\/\/api\.example\.com\/users\/7'/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/-H 'Content-Type: application\/json'/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/-d '\{/)).toBeInTheDocument();
+  });
+
+  it("copies the generated cURL command to the clipboard", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: { writeText },
+    });
+
+    renderDetails();
+    fireEvent.click(screen.getByRole("button", { name: "Try it out" }));
+    fireEvent.change(screen.getByLabelText("id"), { target: { value: "7" } });
+    fireEvent.click(screen.getByRole("button", { name: "Generate cURL" }));
+    fireEvent.click(screen.getByRole("button", { name: "Copy" }));
+
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledOnce();
+    });
+    expect(writeText.mock.calls[0]?.[0]).toContain(
+      "curl -X POST 'https://api.example.com/users/7'",
+    );
+    expect(screen.getByRole("button", { name: "Copied" })).toBeInTheDocument();
   });
 });

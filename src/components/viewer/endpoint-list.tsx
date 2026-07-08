@@ -42,10 +42,12 @@ function ExpandableDetails({
   open,
   rowColor,
   endpoint,
+  serverUrl,
 }: {
   open: boolean;
   rowColor: string;
   endpoint: Endpoint;
+  serverUrl: string;
 }) {
   return (
     <div
@@ -57,7 +59,7 @@ function ExpandableDetails({
         <div
           className={`border-t border-black/5 p-4 dark:border-white/5 ${rowColor} rounded-b`}
         >
-          <EndpointDetails endpoint={endpoint} />
+          <EndpointDetails endpoint={endpoint} serverUrl={serverUrl} />
         </div>
       </div>
     </div>
@@ -158,6 +160,7 @@ export function EndpointList({
                       open={isSelected}
                       rowColor={rowColor}
                       endpoint={endpoint}
+                      serverUrl={selectedServerName.url}
                     />
                   </li>
                 );
