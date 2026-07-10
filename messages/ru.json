@@ -135,5 +135,36 @@
     "curlCommand": "Команда cURL",
     "copy": "Копировать",
     "copied": "Скопировано"
+  },
+  "history": {
+    "title": "История и аналитика",
+    "subtitle": "Просматривайте выполненные API-запросы и метрики производительности.",
+    "detailTitle": "Аналитика запроса",
+    "detailSubtitle": "Подробные метрики, записанные на сервере для этого запроса.",
+    "emptyMessage": "Вы ещё не выполняли ни одного запроса.",
+    "goToEditor": "Перейти в редактор",
+    "goToViewer": "Перейти в просмотрщик",
+    "viewDetails": "Подробнее",
+    "backToHistory": "Назад к истории",
+    "noError": "Ошибок нет",
+    "columns": {
+      "timestamp": "Время",
+      "method": "Метод",
+      "endpoint": "Эндпоинт",
+      "status": "Статус",
+      "duration": "Длительность",
+      "details": "Детали"
+    },
+    "analytics": {
+      "timestamp": "Время",
+      "method": "Метод",
+      "statusCode": "Код ответа",
+      "duration": "Длительность",
+      "requestSize": "Размер запроса",
+      "responseSize": "Размер ответа",
+      "endpoint": "Эндпоинт",
+      "url": "URL",
+      "errorDetail": "Детали ошибки"
+    }
   }
 }

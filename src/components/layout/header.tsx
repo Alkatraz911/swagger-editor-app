@@ -29,20 +29,19 @@ export function Header({ isAuthenticated }: { isAuthenticated: boolean }) {
             {t("about")}
           </Link>
 
+          <Link href="/history" className="hover:underline">
+            {t("history")}
+          </Link>
+
           {isAuthenticated ? (
-            <>
-              <Link href="/history" className="hover:underline">
-                {t("history")}
-              </Link>
-              <form action={signOut}>
-                <button
-                  type="submit"
-                  className="rounded bg-foreground px-3 py-1 text-background hover:opacity-90"
-                >
-                  {t("signOut")}
-                </button>
-              </form>
-            </>
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="rounded bg-foreground px-3 py-1 text-background hover:opacity-90"
+              >
+                {t("signOut")}
+              </button>
+            </form>
           ) : (
             <>
               <Link href="/sign-in" className="hover:underline">

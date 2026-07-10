@@ -135,5 +135,36 @@
     "curlCommand": "cURL command",
     "copy": "Copy",
     "copied": "Copied"
+  },
+  "history": {
+    "title": "History & Analytics",
+    "subtitle": "Review your executed API requests and performance metrics.",
+    "detailTitle": "Request analytics",
+    "detailSubtitle": "Detailed metrics recorded server-side for this request.",
+    "emptyMessage": "You haven't executed any requests yet.",
+    "goToEditor": "Go to Editor",
+    "goToViewer": "Go to Viewer",
+    "viewDetails": "View details",
+    "backToHistory": "Back to history",
+    "noError": "No error",
+    "columns": {
+      "timestamp": "Timestamp",
+      "method": "Method",
+      "endpoint": "Endpoint",
+      "status": "Status",
+      "duration": "Duration",
+      "details": "Details"
+    },
+    "analytics": {
+      "timestamp": "Timestamp",
+      "method": "Method",
+      "statusCode": "Status code",
+      "duration": "Duration",
+      "requestSize": "Request size",
+      "responseSize": "Response size",
+      "endpoint": "Endpoint",
+      "url": "URL",
+      "errorDetail": "Error details"
+    }
   }
 }

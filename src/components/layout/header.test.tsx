@@ -10,14 +10,15 @@ vi.mock("@/lib/auth/actions", () => ({ signOut: vi.fn() }));
 import { Header } from "./header";
 
 describe("Header", () => {
-  it("shows Sign in / Sign up for guests", () => {
+  it("shows Sign in / Sign up and History for guests", () => {
     renderWithIntl(<Header isAuthenticated={false} />);
 
     expect(screen.getByRole("link", { name: /sign in/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /sign up/i })).toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: /history/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /history/i })).toHaveAttribute(
+      "href",
+      "/history",
+    );
     expect(
       screen.queryByRole("button", { name: /sign out/i }),
     ).not.toBeInTheDocument();
