@@ -12,13 +12,7 @@ import { useSpecStore } from "@/store/spec-store";
 import type * as Monaco from "monaco-editor";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -280,7 +274,7 @@ export function SpecEditor({
   const didHydrate = useRef(false);
   const previousUserId = useRef<string | null>(userId);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const previousId = previousUserId.current;
     const userChanged = previousId !== userId;
 
