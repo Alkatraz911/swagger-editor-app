@@ -7,11 +7,18 @@ import { useMonacoTheme } from "@/hooks/use-monaco-theme";
 import { detectFormat } from "@/lib/openapi/detect-format";
 import { parseSpec, validateSpec } from "@/lib/openapi/parse";
 import { SPEC_ERROR_KEYS, translateSpecError } from "@/lib/openapi/spec-errors";
+import type { SavedSchema } from "@/lib/schemas/get-saved-schema";
 import { useSpecStore } from "@/store/spec-store";
 import type * as Monaco from "monaco-editor";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -102,7 +109,7 @@ function EditorPaneLoader() {
   );
 }
 
-function SpecEditorPane() {
+function SpecEditorPane({ userId }: { userId: string | null }) {
   const tSpecErrors = useTranslations("openapi.errors");
   const [editorReady, setEditorReady] = useState(false);
   const theme = useMonacoTheme();
@@ -226,7 +233,7 @@ function SpecEditorPane() {
 
   return (
     <>
-      <EditorToolbar ready={editorReady} />
+      <EditorToolbar ready={editorReady} userId={userId} />
       <div
         aria-hidden={editorReady}
         className={`absolute inset-0 z-10 bg-background transition-opacity duration-300 ${
@@ -261,10 +268,44 @@ function SpecEditorPane() {
   );
 }
 
-export function SpecEditor() {
+type SpecEditorProps = {
+  userId?: string | null;
+  savedSchema?: SavedSchema | null;
+};
+
+export function SpecEditor({
+  userId = null,
+  savedSchema = null,
+}: SpecEditorProps) {
+  const didHydrate = useRef(false);
+  const previousUserId = useRef<string | null>(userId);
+
+  useLayoutEffect(() => {
+    const previousId = previousUserId.current;
+    const userChanged = previousId !== userId;
+
+    if (userChanged) {
+      didHydrate.current = false;
+
+      if (previousId && previousId !== userId) {
+        useSpecStore.getState().reset();
+      }
+    }
+
+    if (userId && savedSchema && !didHydrate.current) {
+      didHydrate.current = true;
+      useSpecStore.setState({
+        rawText: savedSchema.content,
+        format: savedSchema.format,
+      });
+    }
+
+    previousUserId.current = userId;
+  }, [savedSchema, userId]);
+
   return (
     <section className="relative flex min-h-0 flex-1 flex-col pl-4">
-      <SpecEditorPane />
+      <SpecEditorPane userId={userId} />
     </section>
   );
 }

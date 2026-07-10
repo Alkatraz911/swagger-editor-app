@@ -452,11 +452,59 @@ describe("SpecEditor", () => {
     expect(
       screen.queryByTestId("format-switch-button"),
     ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("save-schema-button")).not.toBeInTheDocument();
 
     mountMockEditor();
 
     expect(screen.getByTestId("format-switch-button")).toBeInTheDocument();
     expect(screen.getByTestId("editor-toolbar")).toHaveClass("h-10");
+  });
+
+  it("hydrates the store from a saved schema on mount", () => {
+    renderWithIntl(
+      <SpecEditor
+        userId="u1"
+        savedSchema={{ content: "openapi: 3.0.3", format: "yaml" }}
+      />,
+    );
+
+    expect(useSpecStore.getState().rawText).toBe("openapi: 3.0.3");
+    expect(useSpecStore.getState().format).toBe("yaml");
+  });
+
+  it("resets hydrated schema state when the user logs out", () => {
+    const { rerenderWithLocale } = renderWithIntl(
+      <SpecEditor
+        userId="u1"
+        savedSchema={{ content: "openapi: 3.0.3", format: "yaml" }}
+      />,
+    );
+
+    useSpecStore.setState({
+      parsedSpec: { openapi: "3.0.3" },
+      errors: ["stale error"],
+    });
+
+    rerenderWithLocale(<SpecEditor userId={null} savedSchema={null} />);
+
+    expect(useSpecStore.getState().rawText).toBe("");
+    expect(useSpecStore.getState().format).toBe("yaml");
+    expect(useSpecStore.getState().parsedSpec).toBeNull();
+    expect(useSpecStore.getState().errors).toEqual([]);
+  });
+
+  it("shows the save button only for signed-in users after Monaco mounts", () => {
+    renderWithIntl(<SpecEditor userId="u1" />);
+    mountMockEditor();
+
+    expect(screen.getByTestId("save-schema-button")).toBeInTheDocument();
+  });
+
+  it("hides the save button when the user is not signed in", () => {
+    renderWithIntl(<SpecEditor userId={null} />);
+    mountMockEditor();
+
+    expect(screen.queryByTestId("save-schema-button")).not.toBeInTheDocument();
   });
 
   it("ignores stale validation results after rapid edits", async () => {
