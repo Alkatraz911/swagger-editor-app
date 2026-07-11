@@ -26,6 +26,8 @@ export default async function HistoryPage() {
           message={t("emptyMessage")}
           editorLinkLabel={t("goToEditor")}
           viewerLinkLabel={t("goToViewer")}
+          editorHref="/"
+          viewerHref="/"
         />
       ) : (
         <LazyHistoryList requests={requests} />

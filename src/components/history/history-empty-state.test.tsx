@@ -10,6 +10,8 @@ describe("HistoryEmptyState", () => {
         message={enMessages.history.emptyMessage}
         editorLinkLabel={enMessages.history.goToEditor}
         viewerLinkLabel={enMessages.history.goToViewer}
+        editorHref="/editor"
+        viewerHref="/viewer"
       />,
     );
 
@@ -18,9 +20,9 @@ describe("HistoryEmptyState", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: enMessages.history.goToEditor }),
-    ).toHaveAttribute("href", "/");
+    ).toHaveAttribute("href", "/editor");
     expect(
       screen.getByRole("link", { name: enMessages.history.goToViewer }),
-    ).toHaveAttribute("href", "/");
+    ).toHaveAttribute("href", "/viewer");
   });
 });
