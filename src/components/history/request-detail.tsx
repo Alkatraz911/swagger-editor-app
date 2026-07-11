@@ -19,12 +19,10 @@ function AnalyticsField({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <dt className="text-xs font-medium text-slate-500">
-        <div className="rounded border border-slate-200 p-4">{label}</div>
-      </dt>
-      <dd className="mt-1 text-sm text-slate-900">{children}</dd>
-    </>
+    <div className="rounded-lg border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-black/20">
+      <dt className="text-xs font-medium opacity-60">{label}</dt>
+      <dd className="mt-1 text-sm">{children}</dd>
+    </div>
   );
 }
 
