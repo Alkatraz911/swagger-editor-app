@@ -1,0 +1,171 @@
+{
+  "nav": {
+    "about": "О проекте",
+    "signIn": "Войти",
+    "signUp": "Регистрация",
+    "history": "История",
+    "signOut": "Выйти"
+  },
+  "footer": {
+    "about": "О проекте",
+    "copyright": "© 2026 Swagger Editor — RS School"
+  },
+  "openapi": {
+    "errors": {
+      "rootMustBeObject": "Корень спецификации должен быть объектом.",
+      "failedToParse": "Не удалось разобрать спецификацию.",
+      "invalidOpenApiDocument": "Спецификация не является корректным документом OpenAPI.",
+      "json": "Ошибка синтаксиса JSON",
+      "yaml": "Ошибка синтаксиса YAML",
+      "specification": "Спецификация OpenAPI невалидна"
+    }
+  },
+  "home": {
+    "editorTitle": "Редактор",
+    "editorHint": "Вставьте или напишите здесь спецификацию OpenAPI / Swagger.",
+    "editorErrorsTitle": "Ошибка валидации!",
+    "editorSwitchToFormat": "Переключить на {format}",
+    "editorSwitchDisabledHint": "Исправьте синтаксические ошибки перед сменой формата.",
+    "editorSwitchFailed": "Не удалось конвертировать формат: {error}",
+    "editorSave": "Сохранить",
+    "editorSaveSuccess": "Спецификация сохранена.",
+    "editorSaveFailed": "Не удалось сохранить спецификацию. Попробуйте ещё раз.",
+    "viewerTitle": "Просмотрщик",
+    "viewerHint": "Эндпоинты появятся здесь, как только спецификация станет валидной."
+  },
+  "auth": {
+    "signInTitle": "Вход",
+    "signUpTitle": "Регистрация",
+    "email": "Email",
+    "password": "Пароль",
+    "signIn": "Войти",
+    "signUp": "Зарегистрироваться",
+    "noAccount": "Нет аккаунта?",
+    "haveAccount": "Уже есть аккаунт?",
+    "failed": "Не удалось войти. Попробуйте ещё раз.",
+    "errors": {
+      "email": "Введите корректный email",
+      "min8": "Минимум 8 символов",
+      "letter": "Хотя бы одна буква",
+      "digit": "Хотя бы одна цифра",
+      "special": "Хотя бы один спецсимвол"
+    }
+  },
+  "error": {
+    "title": "Что-то пошло не так",
+    "description": "Произошла непредвиденная ошибка. Попробуйте ещё раз.",
+    "retry": "Попробовать снова"
+  },
+  "about": {
+    "title": "О проекте",
+    "course": {
+      "title": "RS School",
+      "description": "Rolling Scopes School — бесплатная образовательная программа, которую ведут волонтёры. Студенты изучают современную веб-разработку на практических проектах, код-ревью и в команде — так же, как в профессиональных командах разработки.",
+      "linkLabel": "Перейти на сайт RS School"
+    },
+    "team": {
+      "title": "Наша команда",
+      "githubLink": "Профиль GitHub — {name}",
+      "members": [
+        {
+          "name": "Alkatraz911",
+          "role": "Тим Лид",
+          "github": "https://github.com/alkatraz911",
+          "description": "Настройка проекта, инструментов и деплой на Vercel; аутентификация (Вход / Регистрация), шапка приложения, интернационализация (EN/RU), обработка ошибок и защита приватных роутов."
+        },
+        {
+          "name": "maksimdolgonosov",
+          "role": "Просмотрщик Swagger и история",
+          "github": "https://github.com/maksimdolgonosov"
+        },
+        {
+          "name": "dinasing",
+          "role": "Редактор Swagger и страница «О проекте»",
+          "github": "https://github.com/dinasing"
+        }
+      ]
+    },
+    "project": {
+      "title": "О приложении",
+      "description": "Swagger Editor — веб-приложение, объединяющее редактор OpenAPI/Swagger, интерактивный просмотрщик эндпоинтов со встроенным REST-клиентом и историю запросов с аналитикой для каждого пользователя. Можно вставить или написать спецификацию в JSON или YAML, сразу увидеть эндпоинты, отправить тестовые запросы через серверный прокси и сохранить схему после входа в аккаунт.",
+      "technologiesTitle": "Технологии",
+      "technologies": "Next.js, TypeScript, Supabase, Zustand, Monaco Editor, next-intl, Tailwind CSS, Vitest, Vercel",
+      "linksTitle": "Ссылки",
+      "repoLabel": "Репозиторий на GitHub",
+      "demoLabel": "Демо"
+    },
+    "links": {
+      "rsSchool": "https://rs.school/",
+      "repository": "https://github.com/Alkatraz911/swagger-editor-app",
+      "demo": "https://swagger-editor-app-rouge.vercel.app/"
+    }
+  },
+  "viewer": {
+    "empty": "Спецификации пока нет",
+    "emptyHint": "Вставьте или напишите валидную спецификацию OpenAPI / Swagger в редакторе, чтобы увидеть её эндпоинты здесь.",
+    "invalidTitle": "Спецификация невалидна",
+    "endpoints": "Эндпоинты",
+    "noEndpoints": "В спецификации нет эндпоинтов.",
+    "selectPrompt": "Выберите эндпоинт, чтобы увидеть его детали.",
+    "deprecated": "Устарел",
+    "parameters": "Параметры",
+    "noParameters": "У этой операции нет параметров.",
+    "pathParams": "Параметры пути",
+    "queryParams": "Query-параметры",
+    "headerParams": "Параметры заголовков",
+    "cookieParams": "Параметры cookie",
+    "required": "обязательный",
+    "optional": "необязательный",
+    "requestBody": "Тело запроса",
+    "responses": "Ответы",
+    "schema": "Схема",
+    "example": "Пример",
+    "mediaType": "Тип медиа",
+    "noExample": "Пример не указан.",
+    "tryItOut": "Попробовать",
+    "cancel": "Отмена",
+    "execute": "Выполнить",
+    "response": "Ответ",
+    "responseHeaders": "Заголовки",
+    "responseBody": "Тело",
+    "loading": "Отправка запроса…",
+    "proxyError": "Не удалось отправить запрос: {error}",
+    "noServerUrl": "В спецификации не указан URL сервера.",
+    "duration": "Длительность: {value}",
+    "generateCurl": "Сгенерировать cURL",
+    "curlCommand": "Команда cURL",
+    "copy": "Копировать",
+    "copied": "Скопировано"
+  },
+  "history": {
+    "title": "История и аналитика",
+    "subtitle": "Просматривайте выполненные API-запросы и метрики производительности.",
+    "detailTitle": "Аналитика запроса",
+    "detailSubtitle": "Подробные метрики, записанные на сервере для этого запроса.",
+    "emptyMessage": "Вы ещё не выполняли ни одного запроса.",
+    "goToEditor": "Перейти в редактор",
+    "goToViewer": "Перейти в просмотрщик",
+    "viewDetails": "Подробнее",
+    "backToHistory": "Назад к истории",
+    "noError": "Ошибок нет",
+    "columns": {
+      "timestamp": "Время",
+      "method": "Метод",
+      "endpoint": "Эндпоинт",
+      "status": "Статус",
+      "duration": "Длительность",
+      "details": "Детали"
+    },
+    "analytics": {
+      "timestamp": "Время",
+      "method": "Метод",
+      "statusCode": "Код ответа",
+      "duration": "Длительность",
+      "requestSize": "Размер запроса",
+      "responseSize": "Размер ответа",
+      "endpoint": "Эндпоинт",
+      "url": "URL",
+      "errorDetail": "Детали ошибки"
+    }
+  }
+}

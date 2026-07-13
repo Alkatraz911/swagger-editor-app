@@ -1,0 +1,171 @@
+{
+  "nav": {
+    "about": "About",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "history": "History",
+    "signOut": "Sign out"
+  },
+  "footer": {
+    "about": "About",
+    "copyright": "© 2026 Swagger Editor — RS School"
+  },
+  "openapi": {
+    "errors": {
+      "rootMustBeObject": "Specification root must be an object.",
+      "failedToParse": "Failed to parse specification.",
+      "invalidOpenApiDocument": "Specification is not a valid OpenAPI document.",
+      "json": "JSON syntax error",
+      "yaml": "YAML syntax error",
+      "specification": "Invalid OpenAPI specification"
+    }
+  },
+  "home": {
+    "editorTitle": "Editor",
+    "editorHint": "Paste or write your OpenAPI / Swagger specification here.",
+    "editorErrorsTitle": "Validation error!",
+    "editorSwitchToFormat": "Switch to {format}",
+    "editorSwitchDisabledHint": "Fix syntax issues before switching format.",
+    "editorSwitchFailed": "Could not convert between formats: {error}",
+    "editorSave": "Save",
+    "editorSaveSuccess": "Schema saved.",
+    "editorSaveFailed": "Could not save schema. Please try again.",
+    "viewerTitle": "Viewer",
+    "viewerHint": "Endpoints will appear here once the specification is valid."
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "signUpTitle": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "failed": "Authentication failed. Please try again.",
+    "errors": {
+      "email": "Enter a valid email",
+      "min8": "At least 8 characters",
+      "letter": "At least one letter",
+      "digit": "At least one digit",
+      "special": "At least one special character"
+    }
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "retry": "Try again"
+  },
+  "about": {
+    "title": "About",
+    "course": {
+      "title": "RS School",
+      "description": "Rolling Scopes School is a free, volunteer-run educational program. Students learn modern web development through hands-on projects, code reviews, and teamwork — the same skills used in professional software teams.",
+      "linkLabel": "Visit RS School"
+    },
+    "team": {
+      "title": "Our Team",
+      "githubLink": "GitHub profile of {name}",
+      "members": [
+        {
+          "name": "Alkatraz911",
+          "role": "Team Lead",
+          "github": "https://github.com/alkatraz911",
+          "description": "Project setup, tooling and Vercel deployment; authentication (Sign In / Sign Up), the app header, internationalization (EN/RU), error handling and protected routes."
+        },
+        {
+          "name": "maksimdolgonosov",
+          "role": "Swagger Viewer & History",
+          "github": "https://github.com/maksimdolgonosov"
+        },
+        {
+          "name": "dinasing",
+          "role": "Swagger Editor & About Page",
+          "github": "https://github.com/dinasing"
+        }
+      ]
+    },
+    "project": {
+      "title": "The Project",
+      "description": "Swagger Editor is a web application that combines an OpenAPI/Swagger editor, an interactive endpoint viewer with a built-in REST client, and per-user request history and analytics. Users can paste or write a specification in JSON or YAML, preview endpoints instantly, send test requests through a server-side proxy, and save schemas when signed in.",
+      "technologiesTitle": "Technologies",
+      "technologies": "Next.js, TypeScript, Supabase, Zustand, Monaco Editor, next-intl, Tailwind CSS, Vitest, Vercel",
+      "linksTitle": "Links",
+      "repoLabel": "GitHub Repository",
+      "demoLabel": "Live Demo"
+    },
+    "links": {
+      "rsSchool": "https://rs.school/",
+      "repository": "https://github.com/Alkatraz911/swagger-editor-app",
+      "demo": "https://swagger-editor-app-rouge.vercel.app/"
+    }
+  },
+  "viewer": {
+    "empty": "No specification yet",
+    "emptyHint": "Paste or write a valid OpenAPI / Swagger specification in the editor to see its endpoints here.",
+    "invalidTitle": "The specification is not valid",
+    "endpoints": "Endpoints",
+    "noEndpoints": "The specification has no endpoints.",
+    "selectPrompt": "Select an endpoint to see its details.",
+    "deprecated": "Deprecated",
+    "parameters": "Parameters",
+    "noParameters": "This operation has no parameters.",
+    "pathParams": "Path parameters",
+    "queryParams": "Query parameters",
+    "headerParams": "Header parameters",
+    "cookieParams": "Cookie parameters",
+    "required": "required",
+    "optional": "optional",
+    "requestBody": "Request body",
+    "responses": "Responses",
+    "schema": "Schema",
+    "example": "Example",
+    "mediaType": "Media type",
+    "noExample": "No example provided.",
+    "tryItOut": "Try it out",
+    "cancel": "Cancel",
+    "execute": "Execute",
+    "response": "Response",
+    "responseHeaders": "Headers",
+    "responseBody": "Body",
+    "loading": "Sending request…",
+    "proxyError": "Could not send the request: {error}",
+    "noServerUrl": "No server URL defined in the specification.",
+    "duration": "Duration: {value}",
+    "generateCurl": "Generate cURL",
+    "curlCommand": "cURL command",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "history": {
+    "title": "History & Analytics",
+    "subtitle": "Review your executed API requests and performance metrics.",
+    "detailTitle": "Request analytics",
+    "detailSubtitle": "Detailed metrics recorded server-side for this request.",
+    "emptyMessage": "You haven't executed any requests yet.",
+    "goToEditor": "Go to Editor",
+    "goToViewer": "Go to Viewer",
+    "viewDetails": "View details",
+    "backToHistory": "Back to history",
+    "noError": "No error",
+    "columns": {
+      "timestamp": "Timestamp",
+      "method": "Method",
+      "endpoint": "Endpoint",
+      "status": "Status",
+      "duration": "Duration",
+      "details": "Details"
+    },
+    "analytics": {
+      "timestamp": "Timestamp",
+      "method": "Method",
+      "statusCode": "Status code",
+      "duration": "Duration",
+      "requestSize": "Request size",
+      "responseSize": "Response size",
+      "endpoint": "Endpoint",
+      "url": "URL",
+      "errorDetail": "Error details"
+    }
+  }
+}
