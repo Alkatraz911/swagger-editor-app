@@ -5,6 +5,7 @@ type TeamMember = {
   name: string;
   role: string;
   github: string;
+  description?: string;
 };
 
 export default async function AboutPage() {
@@ -44,6 +45,11 @@ export default async function AboutPage() {
                 {member.name}
               </span>
               <span className="text-sm opacity-70">{member.role}</span>
+              {member.description ? (
+                <p className="text-sm leading-relaxed opacity-70">
+                  {member.description}
+                </p>
+              ) : null}
               <Link
                 href={member.github}
                 className="text-sm hover:underline"

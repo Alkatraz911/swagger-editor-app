@@ -70,7 +70,8 @@
         {
           "name": "Alkatraz911",
           "role": "Тим Лид",
-          "github": "https://github.com/alkatraz911"
+          "github": "https://github.com/alkatraz911",
+          "description": "Настройка проекта, инструментов и деплой на Vercel; аутентификация (Вход / Регистрация), шапка приложения, интернационализация (EN/RU), обработка ошибок и защита приватных роутов."
         },
         {
           "name": "maksimdolgonosov",

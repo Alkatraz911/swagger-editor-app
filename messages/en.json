@@ -70,7 +70,8 @@
         {
           "name": "Alkatraz911",
           "role": "Team Lead",
-          "github": "https://github.com/alkatraz911"
+          "github": "https://github.com/alkatraz911",
+          "description": "Project setup, tooling and Vercel deployment; authentication (Sign In / Sign Up), the app header, internationalization (EN/RU), error handling and protected routes."
         },
         {
           "name": "maksimdolgonosov",
